@@ -36,7 +36,7 @@ php artisan serve
 ## 联系我们
 
 <div align="center">
-  <img src="https://foruda.gitee.com/images/1768383496175566831/a990e049_14688257.jpeg" alt="微信二维码" width="200" height="200" />
+  <img src="https://foruda.gitee.com/images/1768390433496425818/a4065489_14688257.jpeg" alt="微信二维码" width="200" height="200" />
   <p><strong>微信扫码联系</strong></p>
 </div>
 
