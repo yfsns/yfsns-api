@@ -1,0 +1,66 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# 依赖目录（会在容器内重新安装）
+vendor
+node_modules
+
+# 存储和缓存（使用 volume 挂载，不需要打包进镜像）
+storage/*
+!storage/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep
+storage/framework/cache/*
+!storage/framework/cache/.gitkeep
+storage/framework/sessions/*
+!storage/framework/sessions/.gitkeep
+storage/framework/views/*
+!storage/framework/views/.gitkeep
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
+
+# 测试和文档
+tests
+phpunit.xml
+.phpunit.result.cache
+*.md
+!README.md
+docs
+
+# IDE 和编辑器
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 环境文件（使用 env_file 挂载）
+.env
+.env.*
+!.env.example
+
+# Docker 相关
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# 部署相关
+deploy
+scripts
+
+# 临时文件
+*.log
+*.tmp
+*.cache
+
+# 其他
+.scribe
+public/hot
+public/storage
+vite.config.js
+package.json
+package-lock.json
+

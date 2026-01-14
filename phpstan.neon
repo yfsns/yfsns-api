@@ -1,0 +1,15 @@
+parameters:
+    level: 0
+    paths:
+        - app/
+    excludePaths:
+        - vendor/
+        - storage/
+        - bootstrap/
+    ignoreErrors:
+        - '#Unsafe usage of new static\(\)#'
+    treatPhpDocTypesAsCertain: true
+    reportUnmatchedIgnoredErrors: false
+
+includes:
+    - ./vendor/larastan/larastan/extension.neon

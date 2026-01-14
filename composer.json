@@ -1,0 +1,99 @@
+{
+    "name": "yfsns/yfsns-api",
+    "type": "project",
+    "description": "YFSNS社交网络服务系统 - 基于Laravel的全栈社交平台",
+    "keywords": ["yfsns", "social", "laravel", "api", "platform"],
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^8.4",
+        "doctrine/dbal": "^3.9",
+        "guzzlehttp/guzzle": "^7.2",
+        "intervention/image": "^3.11",
+        "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.2",
+        "php-ffmpeg/php-ffmpeg": "^1.3",
+        "predis/predis": "^2.3"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.9.1",
+        "knuckleswtf/scribe": "^5.2.1",
+        "laravel/tinker": "^2.8",
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.0",
+        "mockery/mockery": "^1.4.4",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-mockery": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "App\\Modules\\": "app/Modules/",
+            "App\\ApiDoc\\": "app/ApiDoc/",
+            "Plugins\\": "plugins/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        },
+        "files": []
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ],
+        "code:analyze": [
+            "@php ./vendor/bin/phpstan analyze --memory-limit=2G"
+        ],
+        "code:format": [
+            "@php ./vendor/bin/pint"
+        ],
+        "code:check": [
+            "@code:format",
+            "@code:analyze"
+        ],
+        "test": [
+            "@php ./vendor/bin/phpunit"
+        ],
+        "quality": [
+            "@code:check",
+            "@test"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true,
+            "wikimedia/composer-merge-plugin": true
+        }
+    },
+    "conflict": {
+        "symfony/css-selector": ">=8.0"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

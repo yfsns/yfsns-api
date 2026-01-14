@@ -1,0 +1,306 @@
+<?php
+
+/**
+ * YFSNS社交网络服务系统
+ *
+ * Copyright (C) 2025 合肥音符信息科技有限公司
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace App\Modules\Location\Services;
+
+use App\Modules\Location\Contracts\LocationDriverInterface;
+use App\Modules\Location\DTOs\LocationRequest;
+use App\Modules\Location\DTOs\LocationResponse;
+use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * 定位服务门面.
+ *
+ * 提供统一的定位服务接口，支持缓存和故障转移
+ */
+class LocationService
+{
+    /**
+     * 驱动管理器.
+     */
+    protected LocationManager $manager;
+
+    /**
+     * 缓存前缀
+     */
+    protected string $cachePrefix = 'location:';
+
+    /**
+     * 缓存时间（秒）.
+     */
+    protected int $cacheTtl;
+
+    /**
+     * 是否启用缓存.
+     */
+    protected bool $cacheEnabled;
+
+    /**
+     * 构造函数.
+     */
+    public function __construct(LocationManager $manager)
+    {
+        $this->manager = $manager;
+        $this->cacheTtl = config('location.cache_ttl', 86400);
+        $this->cacheEnabled = config('location.cache_enabled', true);
+    }
+
+    /**
+     * 逆地理编码（坐标转地址）.
+     */
+    public function reverseGeocode(
+        float $latitude,
+        float $longitude,
+        ?string $driver = null,
+        bool $useCache = true
+    ): LocationResponse {
+        $request = new LocationRequest($latitude, $longitude);
+
+        // 尝试从缓存获取
+        if ($useCache && $this->cacheEnabled) {
+            $cacheKey = $this->getCacheKey('reverse', $latitude, $longitude, $driver);
+            $cached = Cache::get($cacheKey);
+
+            if ($cached) {
+                Log::debug('从缓存获取定位结果', ['key' => $cacheKey]);
+
+                return $cached;
+            }
+        }
+
+        try {
+            $driverInstance = $this->manager->driver($driver);
+            $response = $driverInstance->reverseGeocode($request);
+
+            // 缓存结果
+            if ($response->success && $useCache && $this->cacheEnabled) {
+                Cache::put($cacheKey, $response, $this->cacheTtl);
+            }
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('逆地理编码失败', [
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'driver' => $driver,
+                'error' => $e->getMessage(),
+            ]);
+
+            // 故障转移：尝试其他驱动
+            return $this->fallback('reverseGeocode', $request, $driver);
+        }
+    }
+
+    /**
+     * 地理编码（地址转坐标）.
+     */
+    public function geocode(
+        string $address,
+        ?string $city = null,
+        ?string $driver = null,
+        bool $useCache = true
+    ): LocationResponse {
+        // 尝试从缓存获取
+        if ($useCache && $this->cacheEnabled) {
+            $cacheKey = $this->getCacheKey('geocode', $address, $city, $driver);
+            $cached = Cache::get($cacheKey);
+
+            if ($cached) {
+                return $cached;
+            }
+        }
+
+        try {
+            $driverInstance = $this->manager->driver($driver);
+            $response = $driverInstance->geocode($address, $city);
+
+            // 缓存结果
+            if ($response->success && $useCache && $this->cacheEnabled) {
+                Cache::put($cacheKey, $response, $this->cacheTtl);
+            }
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('地理编码失败', [
+                'address' => $address,
+                'city' => $city,
+                'driver' => $driver,
+                'error' => $e->getMessage(),
+            ]);
+
+            return LocationResponse::fail($e->getMessage());
+        }
+    }
+
+    /**
+     * 根据IP获取位置.
+     */
+    public function getLocationByIp(
+        string $ip,
+        ?string $driver = null,
+        bool $useCache = true
+    ): LocationResponse {
+        // 尝试从缓存获取
+        if ($useCache && $this->cacheEnabled) {
+            $cacheKey = $this->getCacheKey('ip', $ip, $driver);
+            $cached = Cache::get($cacheKey);
+
+            if ($cached) {
+                return $cached;
+            }
+        }
+
+        try {
+            $driverInstance = $this->manager->driver($driver);
+            $response = $driverInstance->getLocationByIp($ip);
+
+            // 缓存结果
+            if ($response->success && $useCache && $this->cacheEnabled) {
+                Cache::put($cacheKey, $response, $this->cacheTtl);
+            }
+
+            return $response;
+        } catch (Exception $e) {
+            Log::error('IP定位失败', [
+                'ip' => $ip,
+                'driver' => $driver,
+                'error' => $e->getMessage(),
+            ]);
+
+            return LocationResponse::fail($e->getMessage());
+        }
+    }
+
+    /**
+     * 计算距离.
+     */
+    public function calculateDistance(
+        float $lat1,
+        float $lng1,
+        float $lat2,
+        float $lng2,
+        ?string $driver = null
+    ): float {
+        try {
+            $driverInstance = $this->manager->driver($driver);
+
+            return $driverInstance->calculateDistance($lat1, $lng1, $lat2, $lng2);
+        } catch (Exception $e) {
+            Log::error('计算距离失败', [
+                'error' => $e->getMessage(),
+            ]);
+
+            // 使用默认的Haversine公式计算
+            return $this->haversineDistance($lat1, $lng1, $lat2, $lng2);
+        }
+    }
+
+    /**
+     * 清除缓存.
+     */
+    public function clearCache(?string $pattern = null): void
+    {
+        if ($pattern) {
+            Cache::forget($this->cachePrefix . $pattern);
+        } else {
+            // 清除所有定位缓存
+            $keys = Cache::get($this->cachePrefix . 'keys', []);
+            foreach ($keys as $key) {
+                Cache::forget($key);
+            }
+        }
+    }
+
+    /**
+     * 使用指定驱动.
+     */
+    public function driver(?string $name = null): LocationDriverInterface
+    {
+        return $this->manager->driver($name);
+    }
+
+    /**
+     * 获取所有可用驱动.
+     */
+    public function getAvailableDrivers(): array
+    {
+        return array_keys($this->manager->getAvailableDrivers());
+    }
+
+    /**
+     * Haversine公式计算距离.
+     */
+    protected function haversineDistance(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6371000; // 地球半径（米）
+
+        $lat1Rad = deg2rad($lat1);
+        $lat2Rad = deg2rad($lat2);
+        $deltaLat = deg2rad($lat2 - $lat1);
+        $deltaLng = deg2rad($lng2 - $lng1);
+
+        $a = sin($deltaLat / 2) * sin($deltaLat / 2) +
+             cos($lat1Rad) * cos($lat2Rad) *
+             sin($deltaLng / 2) * sin($deltaLng / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
+    }
+
+    /**
+     * 故障转移.
+     */
+    protected function fallback(string $method, LocationRequest $request, ?string $excludeDriver): LocationResponse
+    {
+        $availableDrivers = $this->manager->getAvailableDrivers();
+
+        foreach ($availableDrivers as $name => $driver) {
+            if ($name === $excludeDriver) {
+                continue;
+            }
+
+            try {
+                Log::info('尝试故障转移', ['driver' => $name]);
+
+                return $driver->$method($request);
+            } catch (Exception $e) {
+                Log::warning('故障转移失败', [
+                    'driver' => $name,
+                    'error' => $e->getMessage(),
+                ]);
+
+                continue;
+            }
+        }
+
+        return LocationResponse::fail('所有驱动均不可用');
+    }
+
+    /**
+     * 生成缓存键.
+     */
+    protected function getCacheKey(string $type, ...$params): string
+    {
+        return $this->cachePrefix . $type . ':' . md5(implode(':', $params));
+    }
+}
