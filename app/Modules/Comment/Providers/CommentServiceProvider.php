@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * YFSNS社交网络服务系统
+ *
+ * Copyright (C) 2025 合肥音符信息科技有限公司
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace App\Modules\Comment\Providers;
+
+use App\Modules\Comment\Models\Comment;
+use App\Modules\Comment\Policies\CommentPolicy;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class CommentServiceProvider extends ServiceProvider
+{
+    /**
+     * 注册服务
+     */
+    public function register(): void
+    {
+        // 注册服务
+    }
+
+    /**
+     * 引导服务
+     */
+    public function boot(): void
+    {
+        // 加载数据库迁移文件
+        $this->loadMigrationsFrom(base_path('app/Modules/Comment/Database/Migrations'));
+
+        // 注册权限策略
+        Gate::policy(Comment::class, CommentPolicy::class);
+
+        // 前台 API 路由 - 应用 api 中间件组和认证中间件
+        Route::middleware(['api'])
+            ->prefix('api/v1')
+            ->group(function (): void {
+                $this->loadRoutesFrom(base_path('app/Modules/Comment/Routes/api.php'));
+            });
+
+        // 后台 API 路由 - 只添加基础 api 中间件，认证中间件在路由文件中定义
+        Route::prefix('api/admin')
+            ->middleware(['api'])
+            ->group(function (): void {
+                $this->loadRoutesFrom(base_path('app/Modules/Comment/Routes/admin.php'));
+            });
+
+        // 不再注册 Observer，改为在创建评论时直接触发事件（参考 Post 的处理方式）
+    }
+}

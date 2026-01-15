@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * YFSNS社交网络服务系统
+ *
+ * Copyright (C) 2025 合肥音符信息科技有限公司
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+use App\Modules\Share\Controllers\ShareController;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware(['auth:sanctum'])->group(function (): void {
+    // 分享相关路由
+    Route::prefix('shares')->group(function (): void {
+        // 分享内容
+        Route::post('share/{id}', [ShareController::class, 'share']);
+
+        // 取消分享
+        Route::delete('unshare/{id}', [ShareController::class, 'unshare']);
+
+        // 检查是否已分享
+        Route::get('check/{id}', [ShareController::class, 'check']);
+
+        // 获取分享数量
+        Route::get('count/{id}', [ShareController::class, 'count']);
+
+        // 获取分享链接
+        Route::get('url/{id}', [ShareController::class, 'url']);
+
+        // 分享列表
+        Route::get('list', [ShareController::class, 'list']);
+    });
+});

@@ -1,0 +1,53 @@
+/.phpunit.cache
+/public/storage
+/storage/*.key
+/storage/certs/
+.env
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+/storage/app/public/upgrade/
+/vendor/
+/public/vendor/
+!/public/vendor/scribe/
+.DS_Store
+
+# 文档目录（不推送到仓库）
+/docs/
+
+# 插件安装标记文件（不推送到仓库）
+plugins/*/.installed
+
+# Scribe 自动生成的文件（不推送到仓库）
+.scribe/
+resources/views/scribe/
+
+# 安装锁定文件（不推送到仓库）
+/storage/install.lock
+
+# 脚本文件（不推送到仓库）
+/scripts/
+
+# 允许部署检查脚本
+!scripts/check-deployment.php
+
+# Scribe生成的视图文件（不推送到仓库）
+resources/views/vendor/scribe/
+
+# 推送脚本（本地工具，不推送到仓库）
+push-to-all.sh
+
+# Upgrade模块（开发中，暂不提交）
+app/Modules/Upgrade/
+
+# Upgrade相关命令（开发中，暂不提交）
+app/Console/Commands/UpgradeSystem.php
+
+# 推送脚本（本地工具，不推送到仓库）
+push-to-all.sh

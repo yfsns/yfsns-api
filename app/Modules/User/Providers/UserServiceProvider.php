@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * YFSNS社交网络服务系统
+ *
+ * Copyright (C) 2025 合肥音符信息科技有限公司
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace App\Modules\User\Providers;
+
+use App\Modules\User\Events\UserMentionsCreated;
+use App\Modules\User\Listeners\UserMentionsCreatedListener;
+use App\Modules\User\Services\AvatarReviewService;
+use App\Modules\User\Services\UserService;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
+
+class UserServiceProvider extends ServiceProvider
+{
+    /**
+     * 注册服务
+     */
+    public function register(): void
+    {
+        // 注册服务
+        $this->app->bind(UserService::class, function ($app) {
+            return new UserService(
+                $app->make(AvatarReviewService::class)
+            );
+        });
+    }
+
+    /**
+     * 引导服务
+     */
+    public function boot(): void
+    {
+        // 加载数据库迁移文件
+        $this->loadMigrationsFrom(base_path('app/Modules/User/Database/Migrations'));
+
+        // 加载路由
+        $this->loadRoutes();
+
+        // 注册事件监听器
+        $this->registerEventListeners();
+    }
+
+    /**
+     * 加载路由.
+     */
+    protected function loadRoutes(): void
+    {
+        // 前台 API 路由
+        Route::prefix('api/v1')
+            ->middleware(['api'])
+            ->group(function (): void {
+                $this->loadRoutesFrom(__DIR__ . '/../Routes/api.php');
+            });
+
+        // 后台 API 路由 - 只添加基础 api 中间件，认证中间件在路由文件中定义
+        Route::prefix('api/admin')
+            ->middleware(['api'])
+            ->group(function (): void {
+                $this->loadRoutesFrom(__DIR__ . '/../Routes/admin.php');
+            });
+    }
+
+    /**
+     * 注册事件监听器
+     */
+    protected function registerEventListeners(): void
+    {
+        // 监听通用用户提及创建事件
+        Event::listen(
+            UserMentionsCreated::class,
+            [UserMentionsCreatedListener::class, 'handle']
+        );
+    }
+}
