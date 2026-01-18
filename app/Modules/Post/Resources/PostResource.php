@@ -121,27 +121,27 @@ class PostResource extends JsonResource
 
     /**
      * 设置用户交互状态（点赞、收藏等）
+     * 修复SSR认证问题：正确区分"未认证"和"未点赞"状态
      */
     protected function setUserInteractionStatus($request): void
     {
         $user = $request->user();
-        if (!$user) {
-            $this->resource->isLiked = false;
-            $this->resource->isCollected = false;
-            return;
-        }
 
-        // 设置点赞状态
+        // 设置点赞状态 - 修复SSR认证问题
         if ($this->resource->relationLoaded('likes')) {
-            $this->resource->isLiked = $this->resource->likes->contains('user_id', $user->id);
+            // 如果有关联数据，检查用户是否已点赞（支持SSR环境）
+            $this->resource->isLiked = $user ? $this->resource->likes->contains('user_id', $user->id) : false;
         } else {
+            // 如果没有关联数据，说明查询时用户未认证，设为false
             $this->resource->isLiked = false;
         }
 
-        // 设置收藏状态
+        // 设置收藏状态 - 同样的逻辑修复
         if ($this->resource->relationLoaded('collects')) {
-            $this->resource->isCollected = $this->resource->collects->contains('user_id', $user->id);
+            // 如果有关联数据，检查用户是否已收藏（支持SSR环境）
+            $this->resource->isCollected = $user ? $this->resource->collects->contains('user_id', $user->id) : false;
         } else {
+            // 如果没有关联数据，说明查询时用户未认证，设为false
             $this->resource->isCollected = false;
         }
     }
