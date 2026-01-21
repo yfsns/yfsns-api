@@ -103,7 +103,7 @@ class PostQuery
      */
     public function withUltraLightRelations(): self
     {
-        $this->query->select('posts.id', 'posts.user_id', 'posts.content', 'posts.type', 'posts.visibility', 'posts.like_count', 'posts.comment_count', 'posts.collect_count', 'posts.repost_id', 'posts.created_at', 'posts.is_top', 'posts.is_essence', 'posts.is_recommend')
+        $this->query->select('posts.id', 'posts.user_id', 'posts.title', 'posts.content', 'posts.type', 'posts.visibility', 'posts.like_count', 'posts.comment_count', 'posts.collect_count', 'posts.repost_id', 'posts.created_at', 'posts.is_top', 'posts.is_essence', 'posts.is_recommend')
             ->with([
                 // 用户基本信息（移除status字段，列表页不需要）
                 'user:id,username,nickname,avatar',

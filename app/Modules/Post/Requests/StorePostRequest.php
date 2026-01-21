@@ -32,6 +32,7 @@ class StorePostRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'title' => 'nullable|string|max:255',
             'content' => 'required|string|max:2000',
             'type' => 'nullable|string|in:post,article,question,thread,image,video',
             'visibility' => 'nullable|integer|in:1,2,3,4',
@@ -55,5 +56,25 @@ class StorePostRequest extends FormRequest
         $this->merge([
             'file_ids' => $this->fileIds ?? $this->file_ids,
         ]);
+    }
+
+    /**
+     * 自定义验证规则
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $type = $this->input('type');
+
+            // 只有文章类型才需要标题，其他类型（特别是动态post）不需要
+            if ($type === 'article' && empty($this->input('title'))) {
+                $validator->errors()->add('title', '文章标题不能为空');
+            }
+
+            // 问题和话题类型也需要标题
+            if (in_array($type, ['question', 'thread']) && empty($this->input('title'))) {
+                $validator->errors()->add('title', ucfirst($type) . '标题不能为空');
+            }
+        });
     }
 }

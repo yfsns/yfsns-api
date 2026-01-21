@@ -63,6 +63,7 @@ class PostResource extends JsonResource
         return [
             'id' => (string) $this->id,
             'type' => $this->type ?? 'post',  // 内容类型：post, article, question, thread, image, video
+            'title' => $this->title,  // 标题（文章、问题、话题等类型使用）
             // 转发时，content 存储转发者的转发理由（可选）；普通动态时，content 存储动态内容
             //'content' => $this->content,
             // HTML渲染的内容（包含@用户和#话题的超链接）
