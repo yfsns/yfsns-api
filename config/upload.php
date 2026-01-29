@@ -14,7 +14,7 @@ return [
     'default' => env('UPLOAD_DRIVER', 'local'),
 
     // 文件大小限制（字节）
-    'max_size' => env('UPLOAD_MAX_SIZE', 10 * 1024 * 1024), // 默认10MB
+    'max_size' => env('UPLOAD_MAX_SIZE', 2 * 1024 * 1024), // 调整为2MB，与PHP配置一致
 
     // 允许的文件类型
     'allowed_types' => [
@@ -34,8 +34,8 @@ return [
     'limits' => [
         // 允许的文件类型
         'allowed_mimes' => 'jpeg,jpg,png,gif,mp4,mov,avi,wmv,flv,webm,mkv',
-        // 单个文件最大大小 (KB)
-        'max_file_size' => 20480, // 增加到20MB以支持视频
+        // 单个文件最大大小 (KB)，调整为2MB与PHP配置一致
+        'max_file_size' => 2048, // 2MB
         // 批量上传最大文件数
         'max_batch_files' => 10,
     ],

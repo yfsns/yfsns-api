@@ -141,7 +141,7 @@ class SearchResultResource extends JsonResource
     {
         return match ($this->getResourceType()) {
             'post' => "/posts/{$this->id}",
-            'user' => "/users/{$this->id}",
+            'user' => "/users/{$this->username}",
             'comment' => "/comments/{$this->id}",
             'topic' => "/topics/{$this->id}",
             'group' => "/groups/{$this->id}",

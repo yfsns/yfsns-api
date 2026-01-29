@@ -64,15 +64,54 @@ class UploadFileRequest extends FormRequest
             $hasFiles = $this->has('files') && is_array($this->input('files'));
 
             if (!$hasFile && !$hasFiles) {
-                $validator->errors()->add('file', '请上传文件');
+                $maxSizeMB = config('upload.limits.max_file_size') / 1024;
+                $validator->errors()->add('file', "请上传文件，单个文件最大支持 {$maxSizeMB}MB");
                 return;
             }
 
             if ($hasFile && $hasFiles) {
-                $validator->errors()->add('file', '不能同时上传单个文件和多个文件');
+                $validator->errors()->add('file', '不能同时上传单个文件和多个文件，请选择其中一种方式');
                 return;
             }
+
+            // 检查PHP配置与Laravel配置的一致性
+            $this->checkPhpConfigConsistency($validator);
         });
+    }
+
+    /**
+     * 检查PHP配置与Laravel配置的一致性
+     */
+    protected function checkPhpConfigConsistency($validator)
+    {
+        $phpMaxSize = $this->parseSize(ini_get('upload_max_filesize'));
+        $laravelMaxSize = config('upload.limits.max_file_size') * 1024; // KB转字节
+
+        if ($phpMaxSize < $laravelMaxSize) {
+            $phpMaxSizeMB = round($phpMaxSize / 1024 / 1024, 1);
+            $laravelMaxSizeMB = round($laravelMaxSize / 1024 / 1024, 1);
+            $validator->errors()->add('file', "系统配置不一致：PHP允许的最大文件大小为{$phpMaxSizeMB}MB，但应用配置为{$laravelMaxSizeMB}MB，请联系管理员修复");
+        }
+    }
+
+    /**
+     * 解析PHP大小配置（如"2M", "1G"）为字节数
+     */
+    protected function parseSize($size)
+    {
+        $unit = strtolower(substr($size, -1));
+        $value = (int) substr($size, 0, -1);
+
+        switch ($unit) {
+            case 'g':
+                return $value * 1024 * 1024 * 1024;
+            case 'm':
+                return $value * 1024 * 1024;
+            case 'k':
+                return $value * 1024;
+            default:
+                return $value;
+        }
     }
 
     /**

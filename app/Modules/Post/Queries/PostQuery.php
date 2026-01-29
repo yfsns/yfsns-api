@@ -103,7 +103,7 @@ class PostQuery
      */
     public function withUltraLightRelations(): self
     {
-        $this->query->select('posts.id', 'posts.user_id', 'posts.content', 'posts.type', 'posts.visibility', 'posts.like_count', 'posts.comment_count', 'posts.collect_count', 'posts.repost_id', 'posts.created_at', 'posts.is_top', 'posts.is_essence', 'posts.is_recommend')
+        $this->query->select('posts.id', 'posts.user_id', 'posts.title', 'posts.content', 'posts.type', 'posts.visibility', 'posts.like_count', 'posts.comment_count', 'posts.collect_count', 'posts.repost_id', 'posts.created_at', 'posts.is_top', 'posts.is_essence', 'posts.is_recommend')
             ->with([
                 // 用户基本信息（移除status字段，列表页不需要）
                 'user:id,username,nickname,avatar',
@@ -114,19 +114,13 @@ class PostQuery
                 // 文件信息（图片、视频等）
                 'files:id,name,path,type,size,mime_type,storage,thumbnail,created_at,updated_at',
 
-                // 只加载当前用户的点赞状态（如果已登录）
-                'likes' => fn($q) => $q->when(
-                    $this->currentUserId,
-                    fn($query) => $query->where('user_id', $this->currentUserId)
-                        ->select('id', 'likeable_id', 'user_id')
-                ),
+                // 修复SSR认证问题：始终加载likes关联，但只查询当前用户的数据
+                'likes' => fn($q) => $q->select('id', 'likeable_id', 'user_id')
+                    ->when($this->currentUserId, fn($query) => $query->where('user_id', $this->currentUserId)),
 
-                // 只加载当前用户的收藏状态（如果已登录）
-                'collects' => fn($q) => $q->when(
-                    $this->currentUserId,
-                    fn($query) => $query->where('user_id', $this->currentUserId)
-                        ->select('id', 'collectable_id', 'user_id')
-                ),
+                // 修复SSR认证问题：始终加载collects关联，但只查询当前用户的数据
+                'collects' => fn($q) => $q->select('id', 'collectable_id', 'user_id')
+                    ->when($this->currentUserId, fn($query) => $query->where('user_id', $this->currentUserId)),
 
                 // 转发原帖的最小化信息（包含文件完整URL所需字段）
                 'originalPost' => fn($q) => $q->with([

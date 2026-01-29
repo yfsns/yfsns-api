@@ -89,11 +89,11 @@ class UserController extends Controller
     /**
      * 获取用户详情（个人主页/个人中心）.
      *
-     * 统一接口：支持传入用户ID或"me"
-     * - 如果传入"me"或当前用户ID，返回完整信息（个人中心）
-     * - 如果传入其他用户ID，返回公开信息（个人主页）
+     * 统一接口：支持传入用户名或"me"
+     * - 如果传入"me"或当前用户名，返回完整信息（个人中心）
+     * - 如果传入其他用户名，返回公开信息（个人主页）
      *
-     * @urlParam id string required 用户ID或"me"
+     * @urlParam username string required 用户名或"me"
      *
      * @response {
      *   "code": 200,
@@ -118,12 +118,12 @@ class UserController extends Controller
      *   }
      * }
      */
-    public function show(string $id): JsonResponse
+    public function show(string $username): JsonResponse
     {
         $currentUser = auth()->user();
-        
-        // 处理 "me" 或当前用户ID的情况
-        if ($id === 'me' || ($currentUser && (string) $currentUser->id === $id)) {
+
+        // 处理 "me" 或当前用户名的情况
+        if ($username === 'me' || ($currentUser && $currentUser->username === $username)) {
             // 个人中心：返回当前登录用户的完整信息
             if (!$currentUser) {
                 return response()->error('未登录', 401);
@@ -132,7 +132,7 @@ class UserController extends Controller
             $isOwnProfile = true;
         } else {
             // 个人主页：返回其他用户的公开信息
-            $user = User::findOrFail($id)->load('role');
+            $user = User::where('username', $username)->firstOrFail()->load('role');
             $isOwnProfile = false;
         }
 
