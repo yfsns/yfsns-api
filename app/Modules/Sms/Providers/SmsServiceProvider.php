@@ -20,13 +20,14 @@
 
 namespace App\Modules\Sms\Providers;
 
-use App\Modules\Sms\Channels\BuiltIn\AliyunChannel;
-use App\Modules\Sms\Channels\BuiltIn\TencentChannel;
 use App\Modules\Sms\Channels\Plugin\PluginChannelBridge;
+use App\Modules\Sms\Contracts\SmsChannelPluginInterface;
 use App\Modules\Sms\Channels\Registry\SmsChannelRegistry;
 use App\Modules\Sms\Channels\Registry\SmsChannelRegistryInterface;
 use App\Modules\Sms\Config\SmsConfigManager;
 use App\Modules\Sms\Services\SmsService;
+use App\Modules\PluginSystem\Models\PluginInstallation;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,14 +38,12 @@ class SmsServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // 注册通道注册器
+        // 注册通道注册器（同时只能使用 1 个短信通道，内置通道暂不注册，由启用的插件提供）
         $this->app->singleton(SmsChannelRegistryInterface::class, function ($app) {
             $registry = new SmsChannelRegistry();
-
-            // 注册内置通道
-            $registry->registerChannel('aliyun', AliyunChannel::class);
-            $registry->registerChannel('tencent', TencentChannel::class);
-
+            // 内置通道已禁用，仅通过启用的短信插件发现通道
+            // $registry->registerChannel('aliyun', AliyunChannel::class);
+            // $registry->registerChannel('tencent', TencentChannel::class);
             return $registry;
         });
 
@@ -91,6 +90,37 @@ class SmsServiceProvider extends ServiceProvider
 
         // 加载迁移
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        $this->registerPluginSmsChannels();
     }
 
+    /**
+     * 只发现带 smsplug 标签且已启用的插件，并注册为短信通道。
+     * 插件在 getInfo() 中声明 tags 含 smsplug 即可被发现（继承 SmsChannelPlugin 即自动带该标签）。
+     */
+    protected function registerPluginSmsChannels(): void
+    {
+        try {
+            $registry = $this->app->make(SmsChannelRegistryInterface::class);
+            foreach (PluginInstallation::enabled()->installed()->get() as $installation) {
+                try {
+                    $name = $installation->plugin_name;
+                    $file = base_path("plugins/{$name}/Plugin.php");
+                    if (!is_file($file)) continue;
+                    require_once $file;
+                    $class = "\\Plugins\\{$name}\\Plugin";
+                    $plugin = new $class();
+                    $tags = $plugin->getInfo()['tags'] ?? [];
+                    if (!in_array('smsplug', $tags, true)) continue;
+                    if ($plugin instanceof SmsChannelPluginInterface) {
+                        $plugin->registerSmsChannels($registry);
+                    }
+                } catch (\Throwable $e) {
+                    Log::debug('Sms 插件通道跳过', ['plugin' => $installation->plugin_name ?? '', 'error' => $e->getMessage()]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // 表不存在或未安装插件
+        }
+    }
 }

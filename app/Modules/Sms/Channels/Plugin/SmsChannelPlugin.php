@@ -104,15 +104,14 @@ abstract class SmsChannelPlugin extends BasePlugin implements SmsChannelPluginIn
 
     /**
      * 获取插件信息（扩展基础插件信息）
+     * 带 smsplug 标签的插件可被 SMS 模块发现并注册为短信通道
      */
     public function getInfo(): array
     {
         $info = parent::getInfo();
-
-        // 添加短信插件特有的信息
         $info['type'] = 'sms_channel';
+        $info['tags'] = array_merge($info['tags'] ?? [], ['smsplug']);
         $info['capabilities'] = ['sms_channel_provider'];
-
         return $info;
     }
 
