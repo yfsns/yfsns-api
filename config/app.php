@@ -184,6 +184,7 @@ return [
         App\Modules\File\Providers\FileServiceProvider::class, // 文件模块服务提供者
         App\Modules\Location\Providers\LocationServiceProvider::class, // 定位模块服务提供者
         App\Modules\Sms\Providers\SmsServiceProvider::class, // 短信模块服务提供者
+        App\Modules\Subscription\Providers\SubscriptionServiceProvider::class, // 订阅模块服务提供者
         App\Modules\Tag\Providers\TagServiceProvider::class, // 标签模块服务提供者
         App\Modules\Category\Providers\CategoryServiceProvider::class, // 分类模块服务提供者
         App\Modules\PluginSystem\Providers\PluginSystemServiceProvider::class, // 插件系统服务提供者

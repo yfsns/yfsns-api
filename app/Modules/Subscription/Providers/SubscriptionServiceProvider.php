@@ -42,10 +42,10 @@ class SubscriptionServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(base_path('app/Modules/Subscription/Database/Migrations'));
 
         // 加载路由
-        Route::middleware('api')
-            ->prefix('api/v1')
+        Route::prefix('api/v1')
+            ->middleware(['api'])
             ->group(function (): void {
-                $this->loadRoutesFrom(base_path('app/Modules/Subscription/Routes/api.php'));
+                $this->loadRoutesFrom(__DIR__ . '/../Routes/api.php');
             });
     }
 }

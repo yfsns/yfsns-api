@@ -20,8 +20,7 @@
 
 namespace App\Modules\Subscription\Controllers;
 
-use App\Http\Controllers\ApiController;
-use App\Http\Traits\PaginatedResponseTrait;
+use App\Http\Controllers\Controller;
 use App\Modules\Subscription\Requests\DestroySubscriptionRequest;
 use App\Modules\Subscription\Requests\StoreSubscriptionRequest;
 use App\Modules\Subscription\Services\SubscriptionService;
@@ -31,9 +30,8 @@ use Illuminate\Http\Request;
 /**
  * 订阅控制器.
  */
-class SubscriptionController extends ApiController
+class SubscriptionController extends Controller
 {
-    use PaginatedResponseTrait;
 
     protected SubscriptionService $subscriptionService;
 
@@ -49,16 +47,24 @@ class SubscriptionController extends ApiController
     {
         $perPage = min((int) $request->input('perPage', 20), 100);
         $subscriptions = $this->subscriptionService->getUserSubscriptions(
-            auth('api')->user(),
+            auth()->user(),
             $perPage
         );
 
         // ⭐ 使用统一的分页响应格式
-        return $this->successWithPagination(
-            $subscriptions,
-            $subscriptions->items(), // 如果没有 Resource，直接使用 items()
-            '获取成功'
-        );
+        return response()->json([
+            'code' => 200,
+            'message' => '获取成功',
+            'data' => [
+                'items' => $subscriptions->items(),
+                'pagination' => [
+                    'current_page' => $subscriptions->currentPage(),
+                    'last_page' => $subscriptions->lastPage(),
+                    'per_page' => $subscriptions->perPage(),
+                    'total' => $subscriptions->total(),
+                ]
+            ]
+        ]);
     }
 
     /**
@@ -75,17 +81,17 @@ class SubscriptionController extends ApiController
         );
 
         if (! $subscribable) {
-            return $this->error('订阅对象不存在', 404);
+            return response()->json(['code' => 404, 'message' => '订阅对象不存在', 'data' => null], 200);
         }
 
         $subscription = $this->subscriptionService->subscribe(
-            auth('api')->user(),
+            auth()->user(),
             $subscribable,
             $data['price'] ?? 0,
             $data['days'] ?? 365
         );
 
-        return $this->success($subscription, '订阅成功');
+        return response()->json(['code' => 200, 'message' => '订阅成功', 'data' => $subscription], 200);
     }
 
     /**
@@ -101,19 +107,19 @@ class SubscriptionController extends ApiController
         );
 
         if (! $subscribable) {
-            return $this->error('订阅对象不存在', 404);
+            return response()->json(['code' => 404, 'message' => '订阅对象不存在', 'data' => null], 200);
         }
 
         $result = $this->subscriptionService->unsubscribe(
-            auth('api')->user(),
+            auth()->user(),
             $subscribable
         );
 
         if ($result) {
-            return $this->success(null, '取消订阅成功');
+            return response()->json(['code' => 200, 'message' => '取消订阅成功', 'data' => null], 200);
         }
 
-        return $this->error('未找到有效订阅', 404);
+        return response()->json(['code' => 404, 'message' => '未找到有效订阅', 'data' => null], 200);
     }
 
     /**
@@ -122,7 +128,7 @@ class SubscriptionController extends ApiController
     protected function getSubscribableModel(string $type, int $id)
     {
         $modelMap = [
-            'column' => \App\Modules\Article\Models\ArticleColumn::class,
+            'post' => \App\Modules\Post\Models\Post::class,
             // 未来可以添加更多类型
             // 'course' => \App\Modules\Course\Models\Course::class,
             // 'video' => \App\Modules\Video\Models\VideoSeries::class,
