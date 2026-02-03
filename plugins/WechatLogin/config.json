@@ -1,0 +1,174 @@
+{
+  "version": "1.0.0",
+  "last_updated": "",
+  "fields": {
+    "WECHAT_MP_APP_ID": {
+      "type": "text",
+      "label": "公众号AppID",
+      "placeholder": "请输入微信公众号AppID",
+      "required": false,
+      "description": "微信公众号的AppID，用于网页授权和消息推送",
+      "validation": {
+        "pattern": "^wx[a-f0-9]{16}$"
+      },
+      "group": "mp"
+    },
+    "WECHAT_MP_APP_SECRET": {
+      "type": "password",
+      "label": "公众号AppSecret",
+      "placeholder": "请输入微信公众号AppSecret",
+      "required": false,
+      "description": "微信公众号的AppSecret，用于获取access_token",
+      "validation": {
+        "min_length": 32
+      },
+      "group": "mp"
+    },
+    "WECHAT_MP_TOKEN": {
+      "type": "text",
+      "label": "公众号Token",
+      "placeholder": "请输入微信公众号Token",
+      "required": false,
+      "description": "微信公众号的消息校验Token",
+      "group": "mp"
+    },
+    "WECHAT_MP_AES_KEY": {
+      "type": "text",
+      "label": "公众号AES Key",
+      "placeholder": "请输入微信公众号AES Key",
+      "required": false,
+      "description": "微信公众号的消息加解密密钥（43位随机字符串）",
+      "validation": {
+        "pattern": "^[a-zA-Z0-9]{43}$"
+      },
+      "group": "mp"
+    },
+    "WECHAT_MINI_APP_ID": {
+      "type": "text",
+      "label": "小程序AppID",
+      "placeholder": "请输入微信小程序AppID",
+      "required": false,
+      "description": "微信小程序的AppID",
+      "validation": {
+        "pattern": "^wx[a-f0-9]{16}$"
+      },
+      "group": "mini"
+    },
+    "WECHAT_MINI_APP_SECRET": {
+      "type": "password",
+      "label": "小程序AppSecret",
+      "placeholder": "请输入微信小程序AppSecret",
+      "required": false,
+      "description": "微信小程序的AppSecret",
+      "validation": {
+        "min_length": 32
+      },
+      "group": "mini"
+    },
+    "WECHAT_OPEN_APP_ID": {
+      "type": "text",
+      "label": "开放平台AppID",
+      "placeholder": "请输入微信开放平台AppID",
+      "required": false,
+      "description": "微信开放平台的AppID，用于扫码登录",
+      "validation": {
+        "pattern": "^wx[a-f0-9]{16}$"
+      },
+      "group": "open"
+    },
+    "WECHAT_OPEN_APP_SECRET": {
+      "type": "password",
+      "label": "开放平台AppSecret",
+      "placeholder": "请输入微信开放平台AppSecret",
+      "required": false,
+      "description": "微信开放平台的AppSecret",
+      "validation": {
+        "min_length": 32
+      },
+      "group": "open"
+    },
+    "WECHAT_OPEN_TOKEN": {
+      "type": "text",
+      "label": "开放平台Token",
+      "placeholder": "请输入微信开放平台Token",
+      "required": false,
+      "description": "微信开放平台的消息校验Token",
+      "group": "open"
+    },
+    "WECHAT_OPEN_AES_KEY": {
+      "type": "text",
+      "label": "开放平台AES Key",
+      "placeholder": "请输入微信开放平台AES Key",
+      "required": false,
+      "description": "微信开放平台的消息加解密密钥（43位随机字符串）",
+      "validation": {
+        "pattern": "^[a-zA-Z0-9]{43}$"
+      },
+      "group": "open"
+    },
+    "WECHAT_ENABLED_LOGIN_METHODS": {
+      "type": "select",
+      "label": "启用的登录方式",
+      "description": "选择启用的微信登录方式",
+      "required": false,
+      "default": "mp",
+      "options": [
+        {"value": "mp", "label": "仅公众号"},
+        {"value": "mini", "label": "仅小程序"},
+        {"value": "open", "label": "仅开放平台"},
+        {"value": "mp,mini", "label": "公众号+小程序"},
+        {"value": "mp,open", "label": "公众号+开放平台"},
+        {"value": "mini,open", "label": "小程序+开放平台"},
+        {"value": "mp,mini,open", "label": "全部启用"}
+      ],
+      "group": "general"
+    },
+    "WECHAT_DEBUG_MODE": {
+      "type": "boolean",
+      "label": "调试模式",
+      "description": "启用调试模式，记录详细的日志信息",
+      "default": false,
+      "group": "general"
+    }
+  },
+  "groups": {
+    "general": {
+      "label": "通用设置",
+      "description": "微信登录的通用配置",
+      "icon": "settings",
+      "order": 1
+    },
+    "mp": {
+      "label": "公众号配置",
+      "description": "微信公众号相关配置",
+      "icon": "wechat",
+      "order": 2
+    },
+    "mini": {
+      "label": "小程序配置",
+      "description": "微信小程序相关配置",
+      "icon": "mini-program",
+      "order": 3
+    },
+    "open": {
+      "label": "开放平台配置",
+      "description": "微信开放平台相关配置",
+      "icon": "open",
+      "order": 4
+    }
+  },
+  "values": {
+    "WECHAT_MP_APP_ID": "",
+    "WECHAT_MP_APP_SECRET": "",
+    "WECHAT_MP_TOKEN": "",
+    "WECHAT_MP_AES_KEY": "",
+    "WECHAT_MINI_APP_ID": "",
+    "WECHAT_MINI_APP_SECRET": "",
+    "WECHAT_OPEN_APP_ID": "",
+    "WECHAT_OPEN_APP_SECRET": "",
+    "WECHAT_OPEN_TOKEN": "",
+    "WECHAT_OPEN_AES_KEY": "",
+    "WECHAT_ENABLED_LOGIN_METHODS": "mp",
+    "WECHAT_DEBUG_MODE": false
+  }
+}

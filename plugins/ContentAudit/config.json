@@ -1,0 +1,119 @@
+{
+  "version": "1.0.0",
+  "last_updated": "",
+  "fields": {
+    "AUDIT_API_BASE_URL": {
+      "type": "url",
+      "label": "审核服务API地址",
+      "placeholder": "请输入审核服务API基础地址",
+      "required": true,
+      "description": "审核服务的API基础地址，如：http://127.0.0.1:8001/api/tenant/ai-moderation",
+      "validation": "required|url",
+      "group": "api",
+      "order": 1
+    },
+    "AUDIT_API_TOKEN": {
+      "type": "password",
+      "label": "API访问令牌",
+      "placeholder": "请输入API访问令牌",
+      "required": true,
+      "description": "审核服务的API访问令牌（Bearer Token）",
+      "validation": "required|string|min:10",
+      "group": "api",
+      "order": 2
+    },
+    "AUDIT_API_TIMEOUT": {
+      "type": "number",
+      "label": "请求超时时间",
+      "placeholder": "请输入超时时间（秒）",
+      "description": "API请求的超时时间，单位为秒",
+      "default": 30,
+      "validation": "integer|min:5|max:300",
+      "group": "api",
+      "order": 3
+    },
+    "AUDIT_ENABLED": {
+      "type": "checkbox",
+      "label": "启用AI审核",
+      "description": "是否启用内容的AI审核功能",
+      "default": "1",
+      "group": "behavior",
+      "order": 1
+    },
+    "AUDIT_ASYNC": {
+      "type": "checkbox",
+      "label": "异步审核",
+      "description": "是否使用异步队列进行审核（推荐开启，避免阻塞发布）",
+      "default": "1",
+      "group": "behavior",
+      "order": 2
+    },
+    "AUDIT_RETRY_TIMES": {
+      "type": "number",
+      "label": "审核失败重试次数",
+      "placeholder": "请输入重试次数",
+      "description": "审核失败时的重试次数",
+      "default": "3",
+      "validation": "integer|min:0|max:10",
+      "group": "behavior",
+      "order": 3
+    },
+    "AUDIT_RETRY_DELAY": {
+      "type": "number",
+      "label": "重试间隔时间",
+      "placeholder": "请输入间隔时间（秒）",
+      "description": "审核失败重试的间隔时间，单位为秒",
+      "default": "60",
+      "validation": "integer|min:10|max:3600",
+      "group": "behavior",
+      "order": 4
+    },
+    "AUDIT_AUTO_PUBLISH_ON_PASS": {
+      "type": "checkbox",
+      "label": "审核通过自动发布",
+      "description": "审核通过后是否自动发布内容",
+      "default": "1",
+      "group": "auto_action",
+      "order": 1
+    },
+    "AUDIT_AUTO_UNPUBLISH_ON_REJECT": {
+      "type": "checkbox",
+      "label": "审核拒绝自动下架",
+      "description": "审核拒绝后是否自动下架内容",
+      "default": "0",
+      "group": "auto_action",
+      "order": 2
+    }
+  },
+  "groups": {
+    "api": {
+      "label": "API配置",
+      "description": "审核服务API的基本配置",
+      "icon": "globe",
+      "order": 1
+    },
+    "behavior": {
+      "label": "审核行为",
+      "description": "审核流程的行为配置",
+      "icon": "settings",
+      "order": 2
+    },
+    "auto_action": {
+      "label": "自动操作",
+      "description": "审核结果的自动处理操作",
+      "icon": "zap",
+      "order": 3
+    }
+  },
+  "values": {
+    "AUDIT_API_BASE_URL": "",
+    "AUDIT_API_TOKEN": "",
+    "AUDIT_API_TIMEOUT": 30,
+    "AUDIT_ENABLED": true,
+    "AUDIT_ASYNC": true,
+    "AUDIT_RETRY_TIMES": 3,
+    "AUDIT_RETRY_DELAY": 60,
+    "AUDIT_AUTO_PUBLISH_ON_PASS": true,
+    "AUDIT_AUTO_UNPUBLISH_ON_REJECT": false
+  }
+}

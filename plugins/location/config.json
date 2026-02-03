@@ -1,0 +1,176 @@
+{
+  "version": "1.0.0",
+  "last_updated": "",
+  "fields": {
+    "LOCATION_DEFAULT_DRIVER": {
+      "type": "select",
+      "label": "默认定位驱动",
+      "description": "选择系统默认使用的定位服务提供商",
+      "options": [
+        {"value": "tencent", "label": "腾讯地图"},
+        {"value": "amap", "label": "高德地图"},
+        {"value": "baidu", "label": "百度地图"}
+      ],
+      "default": "tencent",
+      "required": true,
+      "group": "general",
+      "order": 1
+    },
+    "LOCATION_CACHE_ENABLED": {
+      "type": "checkbox",
+      "label": "启用缓存",
+      "description": "是否缓存定位结果以提高性能",
+      "default": true,
+      "group": "general",
+      "order": 2
+    },
+    "LOCATION_CACHE_TTL": {
+      "type": "number",
+      "label": "缓存时间",
+      "description": "定位结果的缓存时间（分钟）",
+      "default": 1440,
+      "validation": "integer|min:60|max:10080",
+      "group": "general",
+      "order": 3
+    },
+    "TENCENT_MAP_ENABLED": {
+      "type": "checkbox",
+      "label": "启用腾讯地图",
+      "description": "是否启用腾讯地图定位服务",
+      "default": true,
+      "group": "general",
+      "order": 4
+    },
+    "TENCENT_MAP_KEY": {
+      "type": "password",
+      "label": "腾讯地图API密钥",
+      "description": "腾讯位置服务的API密钥",
+      "placeholder": "请输入腾讯地图API密钥",
+      "validation": "nullable|string|min:10|max:64",
+      "group": "general",
+      "order": 5
+    },
+    "TENCENT_MAP_TIMEOUT": {
+      "type": "number",
+      "label": "腾讯地图请求超时",
+      "description": "腾讯地图API请求超时时间（秒）",
+      "default": 5,
+      "validation": "integer|min:1|max:30",
+      "group": "general",
+      "order": 6
+    },
+    "AMAP_ENABLED": {
+      "type": "checkbox",
+      "label": "启用高德地图",
+      "description": "是否启用高德地图定位服务",
+      "default": false,
+      "group": "general",
+      "order": 7
+    },
+    "AMAP_KEY": {
+      "type": "password",
+      "label": "高德地图API密钥",
+      "description": "高德地图Web服务API的Key",
+      "placeholder": "请输入高德地图API密钥",
+      "validation": "nullable|string|min:10|max:64",
+      "group": "general",
+      "order": 8
+    },
+    "AMAP_SECRET": {
+      "type": "password",
+      "label": "高德地图数字签名",
+      "description": "高德地图数字签名（可选，用于增强安全性）",
+      "placeholder": "请输入高德地图数字签名",
+      "validation": "nullable|string|min:10|max:64",
+      "group": "general",
+      "order": 9
+    },
+    "AMAP_TIMEOUT": {
+      "type": "number",
+      "label": "高德地图请求超时",
+      "description": "高德地图API请求超时时间（秒）",
+      "default": 5,
+      "validation": "integer|min:1|max:30",
+      "group": "general",
+      "order": 10
+    },
+    "BAIDU_MAP_ENABLED": {
+      "type": "checkbox",
+      "label": "启用百度地图",
+      "description": "是否启用百度地图定位服务",
+      "default": false,
+      "group": "general",
+      "order": 11
+    },
+    "BAIDU_MAP_AK": {
+      "type": "password",
+      "label": "百度地图AK",
+      "description": "百度地图Web服务API的AK",
+      "placeholder": "请输入百度地图AK",
+      "validation": "nullable|string|min:10|max:64",
+      "group": "general",
+      "order": 12
+    },
+    "BAIDU_MAP_TIMEOUT": {
+      "type": "number",
+      "label": "百度地图请求超时",
+      "description": "百度地图API请求超时时间（秒）",
+      "default": 5,
+      "validation": "integer|min:1|max:30",
+      "group": "general",
+      "order": 13
+    },
+    "LOCATION_MAX_DISTANCE": {
+      "type": "number",
+      "label": "最大搜索距离",
+      "description": "位置搜索的最大距离限制（公里）",
+      "default": 50,
+      "validation": "integer|min:1|max:1000",
+      "group": "general",
+      "order": 14
+    },
+    "LOCATION_API_RATE_LIMIT": {
+      "type": "number",
+      "label": "API频率限制",
+      "description": "API请求的频率限制（次/分钟）",
+      "default": 1000,
+      "validation": "integer|min:10|max:10000",
+      "group": "general",
+      "order": 15
+    },
+    "LOCATION_DEBUG_MODE": {
+      "type": "checkbox",
+      "label": "调试模式",
+      "description": "启用调试模式，记录详细的定位服务日志",
+      "default": false,
+      "group": "general",
+      "order": 16
+    }
+  },
+  "groups": {
+    "general": {
+      "label": "基本配置",
+      "description": "定位服务的所有配置选项",
+      "icon": "settings",
+      "order": 1
+    }
+  },
+  "values": {
+    "LOCATION_DEFAULT_DRIVER": "tencent",
+    "LOCATION_CACHE_ENABLED": true,
+    "LOCATION_CACHE_TTL": 1440,
+    "TENCENT_MAP_ENABLED": true,
+    "TENCENT_MAP_KEY": "",
+    "TENCENT_MAP_TIMEOUT": 5,
+    "AMAP_ENABLED": false,
+    "AMAP_KEY": "",
+    "AMAP_SECRET": "",
+    "AMAP_TIMEOUT": 5,
+    "BAIDU_MAP_ENABLED": false,
+    "BAIDU_MAP_AK": "",
+    "BAIDU_MAP_TIMEOUT": 5,
+    "LOCATION_MAX_DISTANCE": 50,
+    "LOCATION_API_RATE_LIMIT": 1000,
+    "LOCATION_DEBUG_MODE": false
+  }
+}

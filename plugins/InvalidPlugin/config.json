@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "fields": {
+    "INVALID_TYPE": {
+      "type": "boolean",
+      "label": "无效类型",
+      "description": "使用不支持的boolean类型"
+    },
+    "INVALID_VALIDATION": {
+      "type": "text",
+      "label": "无效验证",
+      "description": "使用对象格式的验证",
+      "validation": {
+        "min_length": 5,
+        "max_length": 20
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+    "name": "hhhk/hhhk-oss-plugin",
+    "description": "阿里云OSS文件存储插件",
+    "type": "laravel-plugin",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "hhhk",
+            "email": "hhhk@example.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "laravel/framework": ">=10.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Plugins\\HhhkOss\\Plugin"
+            ]
+        }
+    }
+}

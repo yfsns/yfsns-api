@@ -1,0 +1,20 @@
+{
+  "name": "example",
+  "display_name": "示例定位插件",
+  "description": "演示如何创建自定义定位驱动插件",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "namespace": "Plugins\\Location\\Example",
+  "driver_class": "ExampleLocationDriver",
+  "enabled": false,
+  "config": {
+    "api_key": "",
+    "api_secret": "",
+    "timeout": 5
+  },
+  "requirements": {
+    "php": ">=8.0",
+    "laravel": ">=10.0"
+  }
+}
+

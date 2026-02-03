@@ -1,0 +1,15 @@
+{
+    "WECHAT_MP_APP_ID": null,
+    "WECHAT_MP_APP_SECRET": null,
+    "WECHAT_MP_TOKEN": null,
+    "WECHAT_MP_AES_KEY": null,
+    "WECHAT_MINI_APP_ID": null,
+    "WECHAT_MINI_APP_SECRET": null,
+    "WECHAT_OPEN_APP_ID": null,
+    "WECHAT_OPEN_APP_SECRET": null,
+    "WECHAT_OPEN_TOKEN": null,
+    "WECHAT_OPEN_AES_KEY": null,
+    "WECHAT_ENABLED_LOGIN_METHODS": "mp",
+    "WECHAT_DEBUG_MODE": false,
+    "updated_at": "2025-12-19T14:52:41.904803Z"
+}

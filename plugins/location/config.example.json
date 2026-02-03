@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "fields": {
+    "LOCATION_DEFAULT_DRIVER": {
+      "type": "select",
+      "label": "默认定位驱动",
+      "description": "选择系统默认使用的定位服务提供商",
+      "options": [
+        {"value": "tencent", "label": "腾讯地图"},
+        {"value": "amap", "label": "高德地图"},
+        {"value": "baidu", "label": "百度地图"}
+      ],
+      "default": "tencent",
+      "required": true,
+      "group": "general"
+    },
+    "TENCENT_MAP_ENABLED": {
+      "type": "boolean",
+      "label": "启用腾讯地图",
+      "description": "是否启用腾讯地图定位服务",
+      "default": true,
+      "group": "drivers"
+    },
+    "TENCENT_MAP_KEY": {
+      "type": "password",
+      "label": "腾讯地图API密钥",
+      "description": "腾讯位置服务的API密钥，从腾讯地图开放平台获取",
+      "placeholder": "请输入腾讯地图API密钥，例如：7EZBZ-WAMK2-KHQUZ-CVAC5-US7IO-UFFNM",
+      "validation": "nullable|string|min:10|max:64",
+      "group": "drivers"
+    }
+  },
+  "groups": {
+    "general": {
+      "label": "通用设置",
+      "description": "定位服务的基本配置",
+      "icon": "settings"
+    },
+    "drivers": {
+      "label": "驱动配置",
+      "description": "各定位服务提供商的配置",
+      "icon": "map"
+    }
+  },
+  "values": {
+    "LOCATION_DEFAULT_DRIVER": "tencent",
+    "LOCATION_CACHE_ENABLED": true,
+    "LOCATION_CACHE_TTL": 1440,
+    "TENCENT_MAP_ENABLED": true,
+    "TENCENT_MAP_KEY": "YOUR_TENCENT_MAP_API_KEY_HERE",
+    "TENCENT_MAP_TIMEOUT": 5
+  },
+  "instructions": {
+    "title": "腾讯地图配置说明",
+    "steps": [
+      {
+        "step": 1,
+        "title": "申请腾讯地图API密钥",
+        "description": "访问腾讯地图开放平台 https://lbs.qq.com/ 注册账号并申请WebService API密钥",
+        "url": "https://lbs.qq.com/"
+      },
+      {
+        "step": 2,
+        "title": "配置API密钥",
+        "description": "在下方TENCENT_MAP_KEY字段中填入您申请的API密钥"
+      },
+      {
+        "step": 3,
+        "title": "测试配置",
+        "description": "保存配置后，可以通过API接口测试定位功能是否正常工作"
+      }
+    ],
+    "api_test": {
+      "url": "/api/v1/location/reverse?lat=39.9042&lng=116.4074",
+      "description": "测试逆地理编码接口（北京天安门坐标）"
+    }
+  }
+}

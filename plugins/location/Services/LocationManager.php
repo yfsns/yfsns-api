@@ -1,0 +1,336 @@
+<?php
+
+/**
+ * YFSNS社交网络服务系统
+ *
+ * Copyright (C) 2025 合肥音符信息科技有限公司
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace Plugins\Location\Services;
+
+use App\Modules\Location\Contracts\LocationDriverInterface;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+
+/**
+ * 定位服务驱动管理器.
+ *
+ * 负责管理和加载所有定位服务驱动（内置 + 插件）
+ */
+class LocationManager
+{
+    /**
+     * 已注册的驱动.
+     *
+     * @var array<string, LocationDriverInterface>
+     */
+    protected array $drivers = [];
+
+    /**
+     * 默认驱动名称.
+     */
+    protected string $defaultDriver;
+
+    /**
+     * 驱动配置.
+     */
+    protected array $driversConfig;
+
+    /**
+     * 是否启用缓存.
+     */
+    protected bool $cacheEnabled;
+
+    /**
+     * 缓存时间.
+     */
+    protected int $cacheTtl;
+
+    /**
+     * 是否启用故障转移.
+     */
+    protected bool $enableFallback;
+
+    /**
+     * 默认坐标系.
+     */
+    protected string $defaultCoordType;
+
+    /**
+     * 是否启用日志.
+     */
+    protected bool $logEnabled;
+
+    /**
+     * 日志通道.
+     */
+    protected string $logChannel;
+
+    /**
+     * 构造函数.
+     */
+    public function __construct(
+        array $driversConfig = [],
+        string $defaultDriver = 'tencent',
+        bool $cacheEnabled = true,
+        int $cacheTtl = 86400,
+        bool $enableFallback = true,
+        string $defaultCoordType = 'gcj02',
+        bool $logEnabled = true,
+        string $logChannel = 'daily'
+    ) {
+        $this->driversConfig = $driversConfig;
+        $this->defaultDriver = $defaultDriver;
+        $this->cacheEnabled = $cacheEnabled;
+        $this->cacheTtl = $cacheTtl;
+        $this->enableFallback = $enableFallback;
+        $this->defaultCoordType = $defaultCoordType;
+        $this->logEnabled = $logEnabled;
+        $this->logChannel = $logChannel;
+
+        $this->loadBuiltInDrivers();
+        $this->loadPluginDrivers();
+    }
+
+    /**
+     * 从配置获取默认驱动
+     */
+    protected function getDefaultDriverFromConfig(): string
+    {
+        return $this->defaultDriver;
+    }
+
+    /**
+     * 获取驱动实例.
+     */
+    public function driver(?string $name = null): LocationDriverInterface
+    {
+        $name = $name ?: $this->defaultDriver;
+
+        if (! isset($this->drivers[$name])) {
+            throw new InvalidArgumentException("定位驱动不存在: {$name}");
+        }
+
+        return $this->drivers[$name];
+    }
+
+    /**
+     * 注册驱动.
+     */
+    public function extend(string $name, LocationDriverInterface $driver): void
+    {
+        $this->drivers[$name] = $driver;
+    }
+
+    /**
+     * 获取所有已注册的驱动.
+     */
+    public function getDrivers(): array
+    {
+        return $this->drivers;
+    }
+
+    /**
+     * 获取可用的驱动列表.
+     */
+    public function getAvailableDrivers(): array
+    {
+        return array_filter($this->drivers, function ($driver) {
+            return $driver->isAvailable();
+        });
+    }
+
+    /**
+     * 设置默认驱动.
+     */
+    public function setDefaultDriver(string $name): void
+    {
+        if (! isset($this->drivers[$name])) {
+            throw new InvalidArgumentException("驱动不存在: {$name}");
+        }
+
+        $this->defaultDriver = $name;
+    }
+
+    /**
+     * 获取默认驱动名称.
+     */
+    public function getDefaultDriver(): string
+    {
+        return $this->defaultDriver;
+    }
+
+    /**
+     * 加载内置驱动.
+     */
+    protected function loadBuiltInDrivers(): void
+    {
+        $drivers = $this->getDriverConfigurations();
+
+        foreach ($drivers as $name => $config) {
+            if (! isset($config['driver']) || ! $config['enabled']) {
+                continue;
+            }
+
+            try {
+                $driverClass = $config['driver'];
+
+                if (! class_exists($driverClass)) {
+                    Log::warning("定位驱动类不存在: {$driverClass}");
+                    continue;
+                }
+
+                $driver = new $driverClass();
+
+                if (! $driver instanceof LocationDriverInterface) {
+                    Log::warning("驱动类未实现 LocationDriverInterface: {$driverClass}");
+                    continue;
+                }
+
+                $driver->initialize($config);
+                $this->drivers[$name] = $driver;
+
+                Log::info('定位驱动加载成功', [
+                    'driver' => $name,
+                    'class' => $driverClass,
+                    'version' => $driver->getVersion(),
+                ]);
+            } catch (Exception $e) {
+                Log::error("定位驱动加载失败: {$name}", [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * 获取驱动配置
+     */
+    protected function getDriverConfigurations(): array
+    {
+        return $this->driversConfig ?: [
+            'tencent' => [
+                'driver' => \Plugins\Location\Drivers\TencentDriver::class,
+                'enabled' => true,
+                'api_key' => '',
+                'timeout' => 5,
+            ],
+            'amap' => [
+                'driver' => \Plugins\Location\Drivers\AmapDriver::class,
+                'enabled' => false,
+                'api_key' => '',
+                'api_secret' => '',
+                'timeout' => 5,
+            ],
+            'baidu' => [
+                'driver' => \Plugins\Location\Drivers\BaiduDriver::class,
+                'enabled' => false,
+                'api_key' => '',
+                'timeout' => 5,
+            ],
+            'mock' => [
+                'driver' => \Plugins\Location\Drivers\MockDriver::class,
+                'enabled' => true,
+                'api_key' => 'mock',
+                'timeout' => 1,
+            ],
+        ];
+    }
+
+    /**
+     * 获取插件配置值
+     */
+    protected function getPluginConfig(string $key, $default = null)
+    {
+        try {
+            return app('plugin.manager')->getPluginConfigValue('location', $key) ?? $default;
+        } catch (Exception $e) {
+            return $default;
+        }
+    }
+
+    /**
+     * 加载插件驱动.
+     */
+    protected function loadPluginDrivers(): void
+    {
+        $pluginPath = base_path('plugins/location');
+
+        if (! is_dir($pluginPath)) {
+            return;
+        }
+
+        $pluginDirs = array_diff(scandir($pluginPath), ['.', '..']);
+
+        foreach ($pluginDirs as $pluginDir) {
+            $this->loadPluginDriver($pluginPath . '/' . $pluginDir);
+        }
+    }
+
+    /**
+     * 加载单个插件驱动.
+     */
+    protected function loadPluginDriver(string $pluginPath): void
+    {
+        $configFile = $pluginPath . '/plugin.json';
+
+        if (! file_exists($configFile)) {
+            return;
+        }
+
+        try {
+            $config = json_decode(file_get_contents($configFile), true);
+
+            if (! isset($config['name']) || ! isset($config['driver_class'])) {
+                Log::warning("插件配置不完整: {$pluginPath}");
+                return;
+            }
+
+            // 自动加载插件类
+            $driverFile = $pluginPath . '/' . str_replace('\\', '/', $config['driver_class']) . '.php';
+
+            if (file_exists($driverFile)) {
+                require_once $driverFile;
+            }
+
+            $driverClass = $config['namespace'] . '\\' . $config['driver_class'];
+
+            if (! class_exists($driverClass)) {
+                Log::warning("插件驱动类不存在: {$driverClass}");
+                return;
+            }
+
+            $driver = new $driverClass();
+
+            if (! $driver instanceof LocationDriverInterface) {
+                Log::warning("插件驱动未实现接口: {$driverClass}");
+                return;
+            }
+
+            $driver->initialize($config);
+            $this->drivers[$config['name']] = $driver;
+
+            Log::info('插件驱动加载成功', [
+                'plugin' => $config['name'],
+                'version' => $driver->getVersion(),
+            ]);
+        } catch (Exception $e) {
+            Log::error("插件驱动加载失败: {$pluginPath}", [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+}

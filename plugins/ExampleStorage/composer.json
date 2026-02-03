@@ -1,0 +1,29 @@
+{
+    "name": "plugins/examplestorage",
+    "description": "示例云存储插件，演示如何开发自定义云存储通道",
+    "version": "1.0.0",
+    "type": "library",
+    "authors": [
+        {
+            "name": "YFSNS Team",
+            "email": "admin@yfsns.cn"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "laravel/framework": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Plugins\\Examplestorage\\": ""
+        }
+    },
+    "extra": {
+        "config": {
+            "title": "示例云存储插件",
+            "description": "用于演示的示例云存储，支持文件上传、删除和CDN加速",
+            "version": "1.0.0",
+            "author": "YFSNS Team"
+        }
+    }
+}

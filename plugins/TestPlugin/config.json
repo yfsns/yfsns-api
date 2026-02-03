@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "description": "测试插件配置",
+  "fields": {
+    "TEST_ENABLED": {
+      "type": "checkbox",
+      "label": "启用测试",
+      "description": "是否启用测试功能",
+      "default": "1",
+      "group": "general",
+      "order": 1
+    }
+  },
+  "groups": {
+    "general": {
+      "label": "通用设置",
+      "icon": "settings",
+      "order": 1
+    }
+  },
+  "values": {
+    "TEST_ENABLED": "1"
+  }
+}

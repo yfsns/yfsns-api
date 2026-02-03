@@ -1,0 +1,333 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-01-03 15:00:00",
+  "metadata": {
+    "data_tables": [
+      {
+        "key": "TENCENT_SMS_TEMPLATES",
+        "label": "短信模板管理",
+        "description": "腾讯云短信模板列表，支持增删改查和状态管理",
+        "data_source": {
+          "type": "database",
+          "table": "tencent_sms_templates",
+          "model": "Plugins\\TencentSmsPlugin\\Models\\TencentSmsTemplate",
+          "plugin_class": "Plugins\\TencentSmsPlugin\\Plugin"
+        },
+        "columns": [
+          {
+            "key": "template_id",
+            "label": "模板ID",
+            "type": "text",
+            "width": "120px",
+            "sortable": true,
+            "searchable": true
+          },
+          {
+            "key": "template_name",
+            "label": "模板名称",
+            "type": "text",
+            "width": "150px",
+            "sortable": true,
+            "searchable": true
+          },
+          {
+            "key": "template_content",
+            "label": "模板内容",
+            "type": "textarea",
+            "width": "300px",
+            "searchable": true
+          },
+          {
+            "key": "audit_status",
+            "label": "审核状态",
+            "type": "badge",
+            "width": "100px",
+            "sortable": true,
+            "options": [
+              {"value": "pending", "label": "待审核", "color": "warning"},
+              {"value": "approved", "label": "已通过", "color": "success"},
+              {"value": "rejected", "label": "已拒绝", "color": "danger"}
+            ]
+          },
+          {
+            "key": "international",
+            "label": "国际模板",
+            "type": "boolean",
+            "width": "100px",
+            "sortable": true
+          },
+          {
+            "key": "status",
+            "label": "启用状态",
+            "type": "switch",
+            "width": "100px",
+            "editable": true,
+            "sortable": true
+          },
+          {
+            "key": "updated_at",
+            "label": "更新时间",
+            "type": "datetime",
+            "width": "160px",
+            "sortable": true
+          }
+        ],
+        "operations": {
+          "create": false,
+          "update": true,
+          "delete": true,
+          "batch_delete": true,
+          "export": true
+        },
+        "actions": [
+          {
+            "type": "button",
+            "label": "同步模板",
+            "action": "sync_templates",
+            "icon": "refresh",
+            "variant": "primary",
+            "confirm": "确定要从腾讯云同步短信模板吗？此操作可能需要一些时间。"
+          },
+          {
+            "type": "button",
+            "label": "批量启用",
+            "action": "batch_enable",
+            "icon": "check-circle",
+            "variant": "success",
+            "selection": true,
+            "confirm": "确定要启用选中的模板吗？"
+          },
+          {
+            "type": "button",
+            "label": "批量禁用",
+            "action": "batch_disable",
+            "icon": "stop",
+            "variant": "warning",
+            "selection": true,
+            "confirm": "确定要禁用选中的模板吗？"
+          }
+        ],
+        "filters": [
+          {
+            "key": "audit_status",
+            "label": "审核状态",
+            "type": "select",
+            "multiple": false,
+            "options": [
+              {"value": "", "label": "全部"},
+              {"value": "pending", "label": "待审核"},
+              {"value": "approved", "label": "已通过"},
+              {"value": "rejected", "label": "已拒绝"}
+            ]
+          },
+          {
+            "key": "status",
+            "label": "启用状态",
+            "type": "select",
+            "multiple": false,
+            "options": [
+              {"value": "", "label": "全部"},
+              {"value": "1", "label": "启用"},
+              {"value": "0", "label": "禁用"}
+            ]
+          },
+          {
+            "key": "international",
+            "label": "模板类型",
+            "type": "select",
+            "multiple": false,
+            "options": [
+              {"value": "", "label": "全部"},
+              {"value": "0", "label": "国内模板"},
+              {"value": "1", "label": "国际模板"}
+            ]
+          }
+        ],
+        "search": {
+          "placeholder": "搜索模板ID、名称或内容",
+          "fields": ["template_id", "template_name", "template_content"]
+        },
+        "pagination": {
+          "default_page_size": 20,
+          "page_size_options": [10, 20, 50, 100],
+          "show_quick_jumper": true,
+          "show_size_changer": true,
+          "show_total": true
+        },
+        "default_sort": {
+          "field": "updated_at",
+          "order": "desc"
+        },
+        "group": "templates",
+        "order": 1
+      }
+    ]
+  },
+  "fields": {
+    "TENCENT_SMS_SECRET_ID": {
+      "type": "password",
+      "label": "SecretId",
+      "description": "腾讯云SecretId，用于API访问认证",
+      "placeholder": "请输入腾讯云SecretId",
+      "required": true,
+      "validation": "required|string|min:10|max:64",
+      "group": "config",
+      "order": 1
+    },
+    "TENCENT_SMS_SECRET_KEY": {
+      "type": "password",
+      "label": "SecretKey",
+      "description": "腾讯云SecretKey，用于API访问认证",
+      "placeholder": "请输入腾讯云SecretKey",
+      "required": true,
+      "validation": "required|string|min:10|max:64",
+      "group": "config",
+      "order": 2
+    },
+    "TENCENT_SMS_SDK_APP_ID": {
+      "type": "text",
+      "label": "SDK AppId",
+      "description": "腾讯云短信SDK AppId，从短信控制台获取",
+      "placeholder": "请输入SDK AppId",
+      "required": true,
+      "validation": "required|string|min:8|max:20",
+      "group": "config",
+      "order": 3
+    },
+    "TENCENT_SMS_SIGN_NAME": {
+      "type": "text",
+      "label": "短信签名",
+      "description": "短信签名名称，需要在腾讯云控制台审核通过",
+      "placeholder": "请输入短信签名",
+      "required": true,
+      "validation": "required|string|max:100",
+      "group": "config",
+      "order": 4
+    },
+    "TENCENT_SMS_REGION_ID": {
+      "type": "select",
+      "label": "地域节点",
+      "description": "腾讯云地域节点，影响API调用延迟",
+      "options": [
+        {"value": "ap-guangzhou", "label": "广州"},
+        {"value": "ap-beijing", "label": "北京"},
+        {"value": "ap-shanghai", "label": "上海"},
+        {"value": "ap-chengdu", "label": "成都"},
+        {"value": "ap-chongqing", "label": "重庆"},
+        {"value": "ap-shenzhen", "label": "深圳"}
+      ],
+      "default": "ap-guangzhou",
+      "group": "config",
+      "order": 5
+    },
+    "TENCENT_SMS_TEMPLATE_SYNC_BTN": {
+      "type": "button",
+      "label": "同步模板",
+      "description": "从腾讯云同步短信模板到本地数据库",
+      "action": "sync_templates",
+      "variant": "primary",
+      "confirm": "确定要从腾讯云同步短信模板吗？此操作可能需要一些时间。",
+      "group": "templates",
+      "order": 1
+    },
+    "TENCENT_SMS_TEMPLATES": {
+      "type": "data_table",
+      "label": "短信模板列表",
+      "description": "腾讯云短信模板列表，支持增删改查和状态管理",
+      "data_source": {
+        "type": "api",
+        "url": "/api/admin/plugins/TencentSmsPlugin/config/data-tables/TENCENT_SMS_TEMPLATES",
+        "method": "GET"
+      },
+      "columns": [
+        {
+          "key": "template_id",
+          "label": "模板ID",
+          "type": "text",
+          "width": "120px",
+          "sortable": true,
+          "searchable": true
+        },
+        {
+          "key": "template_name",
+          "label": "模板名称",
+          "type": "text",
+          "width": "150px",
+          "sortable": true,
+          "searchable": true
+        },
+        {
+          "key": "template_content",
+          "label": "模板内容",
+          "type": "textarea",
+          "width": "300px",
+          "searchable": true
+        },
+        {
+          "key": "audit_status",
+          "label": "审核状态",
+          "type": "badge",
+          "width": "100px",
+          "sortable": true,
+          "options": [
+            {"value": "pending", "label": "待审核", "color": "warning"},
+            {"value": "approved", "label": "已通过", "color": "success"},
+            {"value": "rejected", "label": "已拒绝", "color": "danger"}
+          ]
+        },
+        {
+          "key": "status",
+          "label": "启用状态",
+          "type": "switch",
+          "width": "100px",
+          "editable": true,
+          "sortable": true
+        },
+        {
+          "key": "updated_at",
+          "label": "更新时间",
+          "type": "datetime",
+          "width": "160px",
+          "sortable": true
+        }
+      ],
+      "actions": [
+        {
+          "type": "button",
+          "label": "刷新",
+          "action": "refresh",
+          "icon": "refresh",
+          "variant": "outline-secondary"
+        }
+      ],
+      "pagination": {
+        "default_page_size": 10,
+        "page_size_options": [10, 20, 50]
+      },
+      "group": "templates",
+      "order": 2
+    }
+  },
+  "groups": {
+    "config": {
+      "label": "配置分组",
+      "description": "腾讯云短信服务配置",
+      "icon": "settings",
+      "order": 1
+    },
+    "templates": {
+      "label": "短信模版",
+      "description": "腾讯云短信模板列表展示和状态管理",
+      "icon": "list",
+      "order": 2
+    }
+  },
+  "values": {
+    "TENCENT_SMS_SECRET_ID": "",
+    "TENCENT_SMS_SECRET_KEY": "",
+    "TENCENT_SMS_SDK_APP_ID": "",
+    "TENCENT_SMS_SIGN_NAME": "",
+    "TENCENT_SMS_REGION_ID": "ap-guangzhou",
+    "TENCENT_SMS_ENABLED": true
+  }
+}
