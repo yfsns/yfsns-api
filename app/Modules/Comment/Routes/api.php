@@ -40,7 +40,4 @@ Route::middleware(['auth:sanctum'])->group(function (): void {
 
     // 删除评论
     Route::delete('comments/{id}', [CommentController::class, 'destroy'])->name('comment.destroy');
-
-    // 点赞/取消点赞评论
-    Route::post('comments/{id}/like', [CommentController::class, 'toggleLike'])->name('comment.toggleLike');
 });

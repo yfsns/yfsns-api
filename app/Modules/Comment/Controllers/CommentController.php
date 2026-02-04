@@ -26,7 +26,6 @@ use App\Modules\Comment\Models\Comment;
 use App\Modules\Comment\Requests\GetCommentRepliesRequest;
 use App\Modules\Comment\Requests\GetCommentsRequest;
 use App\Modules\Comment\Requests\StoreCommentRequest;
-use App\Modules\Comment\Requests\ToggleLikeRequest;
 use App\Modules\Comment\Resources\CommentResource;
 use App\Modules\Comment\Services\UserCommentService;
 use App\Modules\User\Services\UserService;
@@ -131,43 +130,6 @@ class CommentController extends Controller
         ], 200);
     }
 
-    /**
-     * 点赞/取消点赞评论.
-     *
-     * @authenticated
-     *
-     * @urlParam id int required 评论ID. Example: 1
-     *
-     * @queryParam action string required 操作类型（like-点赞、unlike-取消点赞）. Example: like
-     *
-     * @response 200 {
-     *   "code": 200,
-     *   "message": "操作成功"
-     * }
-     */
-    public function toggleLike(ToggleLikeRequest $request, int $id): JsonResponse
-    {
-        $comment = \App\Modules\Comment\Models\Comment::findOrFail($id);
-
-        // 检查点赞权限
-        $this->authorize('like', $comment);
-
-        $validated = $request->validated();
-        $action = $validated['action'] ?? 'like';
-
-        [$method, $message] = match ($action) {
-            'unlike' => ['unlike', '取消点赞成功'],
-            default => ['like', '点赞成功'],
-        };
-
-        $this->service->$method($id, $this->userService->getCurrentUserId());
-
-        return response()->json([
-            'code' => 200,
-            'message' => $message,
-            'data' => null,
-        ], 200);
-    }
 
     /**
      * 获取评论树（包含主评论和所有回复）.

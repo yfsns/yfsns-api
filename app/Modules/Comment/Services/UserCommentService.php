@@ -24,6 +24,7 @@ use App\Modules\Topic\Events\TopicsUpdated;
 use App\Http\Exceptions\BusinessException;
 use App\Http\Traits\IpRecordTrait;
 use App\Modules\Comment\Models\Comment;
+use App\Modules\Like\Services\LikeService;
 use App\Modules\User\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -43,7 +44,8 @@ class UserCommentService
     // ========== 构造函数 ==========
 
     public function __construct(
-        private UserService $userService
+        private UserService $userService,
+        private LikeService $likeService
     ) {}
 
     // ========== 公共方法 ==========
@@ -193,46 +195,7 @@ class UserCommentService
     /**
      * 点赞评论
      */
-    public function like(int $commentId, int $userId): void
-    {
-        $comment = Comment::findOrFail($commentId);
-        
-        // 检查是否已点赞
-        $existingLike = \App\Modules\Like\Models\Like::where('user_id', $userId)
-            ->where('likeable_id', $commentId)
-            ->where('likeable_type', 'comment')
-            ->first();
 
-        if (!$existingLike) {
-            \App\Modules\Like\Models\Like::create([
-                'user_id' => $userId,
-                'likeable_id' => $commentId,
-                'likeable_type' => 'comment',
-            ]);
-            $comment->increment('like_count');
-        }
-
-        $this->clearCommentCache($comment);
-    }
-
-    /**
-     * 取消点赞
-     */
-    public function unlike(int $commentId, int $userId): void
-    {
-        $comment = Comment::findOrFail($commentId);
-        
-        $deleted = \App\Modules\Like\Models\Like::where('user_id', $userId)
-            ->where('likeable_id', $commentId)
-            ->where('likeable_type', 'comment')
-            ->delete();
-
-        if ($deleted > 0) {
-            $comment->decrement('like_count');
-        }
-
-        $this->clearCommentCache($comment);
-    }
 
     /**
      * 获取评论数量
@@ -523,16 +486,11 @@ class UserCommentService
         // 设置是否已点赞
         $comment->is_liked = false;
         if ($currentUserId) {
-            $comment->is_liked = \App\Modules\Like\Models\Like::where('likeable_type', 'comment')
-                ->where('likeable_id', $comment->id)
-                ->where('user_id', $currentUserId)
-                ->exists();
+            $comment->is_liked = $this->likeService->isLiked($comment);
         }
 
         // 设置点赞数量
-        $comment->like_count = \App\Modules\Like\Models\Like::where('likeable_type', 'comment')
-            ->where('likeable_id', $comment->id)
-            ->count();
+        $comment->like_count = $this->likeService->getLikeCount($comment);
 
         // 设置回复数量（如果是主评论）
         if ($comment->parent_id === null) {
