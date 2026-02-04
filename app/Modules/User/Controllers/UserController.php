@@ -328,10 +328,7 @@ class UserController extends Controller
     /**
      * 获取推荐用户列表.
      *
-     * 获取系统推荐的用户列表，用于首页展示等场景
-     * 基于当前用户的关注情况进行个性化推荐
-     *
-     * @authenticated
+     * 获取最新的5个注册用户，用于首页展示
      *
      * @response 200 {
      *   "code": 200,
@@ -343,35 +340,19 @@ class UserController extends Controller
      *       "nickname": "用户1",
      *       "avatarUrl": "avatars/xxx.jpg",
      *       "gender": "男",
-     *       "bio": "个人简介",
-     *       "isFollowing": false,
-     *       "isMutualFollow": false,
-     *       "followers": 100
+     *       "bio": "个人简介"
      *     }
      *   ]
      * }
      */
     public function recommend(): JsonResponse
     {
-        $currentUser = auth('api')->user();
-
         $users = $this->service->getRecommendUsers(5);
 
-        // 使用简化的RecommendUserResource并添加关注状态
-        $data = $users->map(function ($user) use ($currentUser) {
-            // 检查关注状态
-            $isFollowing = $this->followService->isFollowing($currentUser, $user);
-            $isFollowed = $this->followService->isFollowing($user, $currentUser);
-
-            // 创建Resource实例并动态添加关注信息
+        // 使用简化的RecommendUserResource
+        $data = $users->map(function ($user) {
             $resource = new RecommendUserResource($user);
-            $userData = $resource->toArray(request());
-
-            $userData['isFollowing'] = $isFollowing;
-            $userData['isMutualFollow'] = $isFollowing && $isFollowed;
-           $userData['followers'] = $this->followService->getFollowersCount($user);
-
-            return $userData;
+            return $resource->toArray(request());
         });
 
         return response()->success($data, '获取推荐用户成功');

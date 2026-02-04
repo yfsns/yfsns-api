@@ -21,14 +21,15 @@ Route::prefix('users')->group(function (): void {
     // 获取用户详情（个人主页/个人中心）- 开放访问
     // 支持传入用户名或"me"，后端自动处理
     Route::get('/{username}', [UserController::class, 'show'])->where('username', '[a-zA-Z0-9_-]+|me');
+
+    // 获取推荐用户列表（公开访问）
+    Route::get('/recommend', [UserController::class, 'recommend']);
 });
 
 // 确保所有 API 请求返回 JSON
 Route::middleware(['auth:sanctum'])->group(function (): void {
     // 前台路由
     Route::prefix('users')->group(function (): void {
-        // 获取推荐用户列表（需要登录）
-        Route::get('/recommend', [UserController::class, 'recommend']);
 
         // 获取当前用户信息
         Route::get('/me', [UserController::class, 'me']);

@@ -67,7 +67,7 @@ class TopicService
      *
      * @param int $limit 限制数量
      */
-    public function getRecommendedTopics(int $limit = 10): array
+    public function getRecommendedTopics(int $limit = 5): array
     {
         $cacheKey = "recommended_topics_{$limit}";
 
@@ -81,9 +81,7 @@ class TopicService
                 'follower_count',
             ])
                 ->where('status', Topic::STATUS_PUBLISHED)
-                ->orderBy('post_count', 'desc')
-                ->orderBy('follower_count', 'desc')
-                ->orderBy('created_at', 'desc')
+                ->orderBy('created_at', 'desc') // 按创建时间倒序，最新的话题优先
                 ->limit($limit)
                 ->get()
                 ->map(function ($topic) {

@@ -92,11 +92,7 @@ class TopicController extends Controller
     /**
      * 获取推荐话题列表.
      *
-     * 获取系统推荐的话题列表，用于首页展示等场景
-     * 基于用户兴趣和活跃度进行个性化推荐
-     * 固定返回10条推荐话题
-     *
-     * @authenticated
+     * 获取最新的5个话题，用于首页展示
      *
      * @response 200 {
      *   "code": 200,

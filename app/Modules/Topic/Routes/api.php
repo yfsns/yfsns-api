@@ -48,12 +48,13 @@ Route::prefix('topics')->group(function (): void {
 
     // 获取话题下的动态列表（使用ID）
     Route::get('/{id}/posts', [TopicController::class, 'getTopicPosts'])->name('topics.posts')->where('id', '[0-9]+');
+
+    // 获取推荐话题列表（公开访问）
+    Route::get('/recommend', [TopicController::class, 'recommend'])->name('topics.recommend');
 });
 
 // 需要认证的话题接口
 Route::prefix('topics')->middleware(['auth:sanctum'])->group(function (): void {
-    // 获取推荐话题列表（需要登录）
-    Route::get('/recommend', [TopicController::class, 'recommend'])->name('topics.recommend');
 
     // 创建话题（前台用户可创建）
     Route::post('/', [TopicController::class, 'store'])->name('topics.store');

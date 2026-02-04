@@ -347,15 +347,13 @@ class UserService
      *
      * @return Collection
      */
-    public function getRecommendUsers(int $limit = 10)
+    public function getRecommendUsers(int $limit = 5)
     {
-        $currentUserId = auth()->id();
-        $cacheKey = "recommended_users_{$currentUserId}_{$limit}";
+        $cacheKey = "recommended_users_{$limit}";
 
-        return Cache::remember($cacheKey, 1800, function () use ($currentUserId, $limit) { // 缓存30分钟
+        return Cache::remember($cacheKey, 1800, function () use ($limit) { // 缓存30分钟
             return User::query()
                 ->active() // 使用 scope
-                ->where('id', '!=', $currentUserId) // 排除当前用户
                 ->orderBy('created_at', 'desc') // 按注册时间倒序，最新的用户优先
                 ->limit($limit)
                 ->get();
