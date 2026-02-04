@@ -105,7 +105,11 @@ class PostResource extends JsonResource
             'canEdit' => $request->user() ? $request->user()->can('update', $this->resource) : false,
             'canDelete' => $request->user() ? $request->user()->can('delete', $this->resource) : false,
             'files' => ($files instanceof \Illuminate\Database\Eloquent\Collection && $files->isNotEmpty())
-                ? \App\Modules\File\Resources\FileResource::collection($files)
+                ? \App\Modules\File\Resources\FileResource::collection(
+                    $files->filter(function ($file) {
+                        return $file->type !== \App\Modules\File\Models\File::TYPE_COVER;
+                    })
+                )
                 : [],
             'images' => $images->isNotEmpty()
                 ? \App\Modules\File\Resources\FileResource::collection($images)
