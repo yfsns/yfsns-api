@@ -18,12 +18,12 @@ use Illuminate\Support\Facades\Route;
 
 // 开放访问的路由（不需要认证）
 Route::prefix('users')->group(function (): void {
+    // 获取推荐用户列表（公开访问）- 必须放在前面，避免被username路由匹配
+    Route::get('/recommend', [UserController::class, 'recommend']);
+
     // 获取用户详情（个人主页/个人中心）- 开放访问
     // 支持传入用户名或"me"，后端自动处理
     Route::get('/{username}', [UserController::class, 'show'])->where('username', '[a-zA-Z0-9_-]+|me');
-
-    // 获取推荐用户列表（公开访问）
-    Route::get('/recommend', [UserController::class, 'recommend']);
 });
 
 // 确保所有 API 请求返回 JSON
