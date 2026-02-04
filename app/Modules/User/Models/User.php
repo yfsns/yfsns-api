@@ -265,6 +265,14 @@ class User extends Authenticatable
     }
 
     /**
+     * 获取用户的收藏
+     */
+    public function collects()
+    {
+        return $this->hasMany(\App\Modules\Collect\Models\Collect::class);
+    }
+
+    /**
      * 获取用户的粉丝（关注这个用户的人）
      */
     public function followers()

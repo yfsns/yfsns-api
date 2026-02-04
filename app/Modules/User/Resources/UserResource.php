@@ -41,10 +41,7 @@ class UserResource extends JsonResource
             'username' => $this->username,
             'nickname' => $this->nickname,
             'avatarUrl' => $this->avatar_url,
-            'email' => $this->email,
-            'phone' => $this->phone,
             'gender' => $genderMap[(int) $this->gender] ?? '保密',
-            'birthday' => $this->birthday,
             'bio' => $this->bio,
             'role' => $this->whenLoaded('role', function () {
                 return [
@@ -60,8 +57,6 @@ class UserResource extends JsonResource
                 User::STATUS_DISABLED => '禁用',
                 default => '未知',
             },
-            // 权限控制字段：是否可以修改状态（管理员不允许禁用）
-            'canStatus' => ! $this->is_admin,  // 管理员不允许修改状态
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
         ];
@@ -76,17 +71,10 @@ class UserResource extends JsonResource
         if (isset($this->posts_count)) {
             $data['posts'] = $this->posts_count;
         }
-
-        // 💰 积分余额（仅在查询自己信息或管理员查看时显示）
-        if (auth()->id() === $this->id || auth()->user()?->is_admin) {
-            try {
-                $pointsService = app(\App\Modules\Wallet\Services\PointsService::class);
-                $pointsStats = $pointsService->getUserPointsStats($this->id);
-                $data['pointsBalance'] = $pointsStats['current_points'] ?? 0;
-            } catch (\Throwable $e) {
-                $data['pointsBalance'] = 0; // 如果获取失败，返回0
-            }
+        if (isset($this->collects_count)) {
+            $data['collects'] = $this->collects_count;
         }
+
 
         return $data;
     }

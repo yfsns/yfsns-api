@@ -87,6 +87,48 @@ class UserController extends Controller
     }
 
     /**
+     * 获取个人资料.
+     *
+     * @authenticated
+     *
+     * @response {
+     *   "code": 200,
+     *   "message": "获取个人资料成功",
+     *   "data": {
+     *     "email": "user@example.com",
+     *     "phone": "13800138000",
+     *     "birthday": "1990-01-01",
+     *     "gender": "男",
+     *     "bio": "个人简介",
+     *     "nickname": "昵称",
+     *     "avatarUrl": "https://api2.yfsns.cn/storage/avatars/xxx.jpg"
+     *   }
+     * }
+     */
+    public function profile(): JsonResponse
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->error('未登录', 401);
+        }
+
+        $genderMap = [1 => '男', 2 => '女', 0 => '保密'];
+
+        $data = [
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'birthday' => $user->birthday,
+            'gender' => $genderMap[(int) $user->gender] ?? '保密',
+            'bio' => $user->bio,
+            'nickname' => $user->nickname,
+            'avatarUrl' => $user->avatar_url,
+        ];
+
+        return response()->success($data, '获取个人资料成功');
+    }
+
+    /**
      * 获取用户详情（个人主页/个人中心）.
      *
      * 统一接口：支持传入用户名或"me"
@@ -102,10 +144,8 @@ class UserController extends Controller
      *     "id": "1",
      *     "username": "user1",
      *     "nickname": "用户1",
-     *     "avatar": "avatars/xxx.jpg",
-     *     "email": "user1@example.com",
+     *     "avatarUrl": "https://api2.yfsns.cn/storage/avatars/xxx.jpg",
      *     "gender": "男",
-     *     "birthday": "1990-01-01",
      *     "bio": "个人简介",
      *     "status": 1,
      *     "created_at": "2024-01-01T00:00:00.000000Z",
@@ -114,7 +154,8 @@ class UserController extends Controller
      *     "isMutualFollow": false,
      *     "followers": 100,
      *     "following": 50,
-     *     "posts": 25
+     *     "posts": 25,
+     *     "collects": 15
      *   }
      * }
      */
@@ -128,11 +169,11 @@ class UserController extends Controller
             if (!$currentUser) {
                 return response()->error('未登录', 401);
             }
-            $user = $currentUser->load('role');
+            $user = User::withCount(['collects'])->find($currentUser->id)->load('role');
             $isOwnProfile = true;
         } else {
             // 个人主页：返回其他用户的公开信息
-            $user = User::where('username', $username)->firstOrFail()->load('role');
+            $user = User::withCount(['collects'])->where('username', $username)->firstOrFail()->load('role');
             $isOwnProfile = false;
         }
 
@@ -169,13 +210,15 @@ class UserController extends Controller
     }
 
     /**
-     * 更新用户信息.
+     * 更新个人资料.
      *
      * @authenticated
      *
      * @bodyParam nickname string 昵称
      * @bodyParam avatar string 头像
-     * @bodyParam bio string 简介
+     * @bodyParam gender string 性别（男/女/保密）
+     * @bodyParam birthday string 生日（YYYY-MM-DD格式）
+     * @bodyParam bio string 个人简介
      *
      * @response {
      *   "code": 200,

@@ -33,6 +33,9 @@ Route::middleware(['auth:sanctum'])->group(function (): void {
         // 获取当前用户信息
         Route::get('/me', [UserController::class, 'me']);
 
+        // 获取个人资料（包含隐私信息）
+        Route::get('/profile', [UserController::class, 'profile']);
+
         // 获取用户的转发列表
         Route::get('/{userId}/reposts', [UserController::class, 'getUserReposts']);
 
@@ -45,8 +48,8 @@ Route::middleware(['auth:sanctum'])->group(function (): void {
         // 获取我的转发列表
         Route::get('/me/reposts', [UserController::class, 'getUserReposts']);
 
-        // 更新用户信息
-        Route::put('/me', [UserController::class, 'update']);
+        // 更新个人资料
+        Route::put('/profile', [UserController::class, 'update']);
 
         // 头像相关路由（声明式API）
         Route::prefix('avatar')->group(function (): void {
