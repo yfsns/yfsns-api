@@ -209,9 +209,9 @@ class CommentController extends Controller
         // 获取分页的评论树
         $paginator = $this->service->getPagedCommentTree($params, $request->user());
 
-        // 提取分页元数据（在转换资源之前）
+        // 提取分页元数据（在转换资源之前，不返回 path 避免暴露内部域名）
         $paginationData = [
-            'path' => $paginator->path(),
+            // 'path' => $paginator->path(),
             'per_page' => $paginator->perPage(),
             'next_cursor' => $paginator->nextCursor()?->encode(),
             'next_page_url' => $paginator->nextPageUrl(),

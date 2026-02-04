@@ -145,7 +145,11 @@ class Comment extends Model
      */
     public function getIsLikedAttribute($user = null): bool
     {
-        // 如果没有传入用户，则尝试从认证中获取
+        // 优先使用 Service 层已预加载的 likes 关系，避免 N+1
+        if ($this->relationLoaded('likes')) {
+            return $this->likes->isNotEmpty();
+        }
+
         if (!$user) {
             $user = auth()->user();
         }
@@ -154,7 +158,7 @@ class Comment extends Model
             return false;
         }
 
-        // 直接查询数据库（因为likes()现在返回查询构建器）
+        // 未预加载时再查库
         return \App\Modules\Like\Models\Like::where('likeable_type', 'comment')
             ->where('likeable_id', $this->id)
             ->where('user_id', $user->id)

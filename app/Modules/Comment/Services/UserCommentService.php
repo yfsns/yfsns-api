@@ -123,34 +123,15 @@ class UserCommentService
 
         $paginator = $query->cursorPaginate($limit, ['*'], 'cursor', $cursor);
 
-        // 为每个主评论加载回复
-        $commentsWithReplies = $paginator->getCollection()->map(function ($comment) use ($currentUser) {
-            // 获取这个评论的所有回复（限制数量以提高性能）
-            $replies = Comment::query()
-                ->with(array_filter($this->getCommentEagerLoads($currentUser), function ($key) {
-                    return $key !== 'likes';
-                }, ARRAY_FILTER_USE_KEY))
-                ->where('parent_id', $comment->id)
-                ->published()
-                ->orderBy('created_at', 'asc')
-                ->limit(5) // 限制回复数量
-                ->get();
+        // 列表只带主评论 + 点赞状态，不预加载回复（回复通过「获取评论回复列表」按需加载）
+        $collection = $paginator->getCollection();
+        if ($currentUser) {
+            $this->loadLikesForComments($collection, $currentUser);
+        } else {
+            $collection->each(fn ($comment) => $comment->setRelation('likes', collect()));
+        }
 
-            // 手动加载likes关联
-            if ($currentUser) {
-                $this->loadLikesForComments(collect([$comment]), $currentUser);
-                $this->loadLikesForComments($replies, $currentUser);
-            } else {
-                $comment->setRelation('likes', collect());
-                $replies->each(fn($reply) => $reply->setRelation('likes', collect()));
-            }
-
-            $comment->replies = $replies;
-            return $comment;
-        });
-
-        // 返回分页器，设置处理后的数据（保持原始模型用于cursor分页）
-        return $paginator->setCollection($commentsWithReplies);
+        return $paginator;
     }
 
     /**

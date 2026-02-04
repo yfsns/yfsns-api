@@ -67,7 +67,7 @@ class AdminPostResource extends JsonResource
                 'id' => (string) $author->id,
                 'username' => $author->username,
                 'nickname' => $author->nickname,
-                'avatarUrl' => $author->avatar ? config('app.url') . '/storage/' . $author->avatar : config('app.url') . '/assets/default_avatars.png',
+                'avatarUrl' => $author->avatar_url,
             ] : null,
 
             // 文件信息

@@ -40,7 +40,7 @@ class UserResource extends JsonResource
             'id' => (string) $this->id,
             'username' => $this->username,
             'nickname' => $this->nickname,
-            'avatarUrl' => $this->avatar ? config('app.url') . '/storage/' . $this->avatar : config('app.url') . '/assets/default_avatars.png',
+            'avatarUrl' => $this->avatar_url,
             'email' => $this->email,
             'phone' => $this->phone,
             'gender' => $genderMap[(int) $this->gender] ?? '保密',

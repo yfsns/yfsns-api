@@ -37,7 +37,7 @@ class UserResource extends JsonResource
             'id' => (string) $this->resource->id,
             'username' => $this->resource->username,
             'nickname' => $this->resource->nickname,
-            'avatarUrl' => $this->resource->avatar ? config('app.url') . '/storage/' . $this->resource->avatar : config('app.url') . '/assets/default_avatars.png',
+            'avatarUrl' => $this->resource->avatar_url,
         ];
     }
 

@@ -165,6 +165,15 @@ class User extends Authenticatable
 
 
     /**
+     * 头像展示地址（完整 URL，供前端直接展示，供列表/评论等统一使用）
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        $path = $this->avatar ? '/storage/' . $this->avatar : '/assets/default_avatars.png';
+        return rtrim(config('app.url', ''), '/') . $path;
+    }
+
+    /**
      * 获取用户头像信息（包含审核状态）
      */
     public function getAvatarInfo(): array
@@ -173,7 +182,7 @@ class User extends Authenticatable
         $reviewStatus = $avatarService->getUserAvatarReviewStatus($this);
 
         return [
-            'avatar_url' => $this->avatar ? config('app.url') . '/storage/' . $this->avatar : config('app.url') . '/assets/default_avatars.png',
+            'avatar_url' => $this->avatar_url,
             'review_status' => $reviewStatus['review_status'],
             'pending_review' => $reviewStatus['pending_asset'] !== null,
             'can_upload' => $reviewStatus['can_upload'],

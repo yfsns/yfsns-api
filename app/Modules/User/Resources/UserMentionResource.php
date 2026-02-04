@@ -37,7 +37,7 @@ class UserMentionResource extends JsonResource
                     'id' => $this->sender->id,
                     'username' => $this->sender->username,
                     'nickname' => $this->sender->nickname,
-                    'avatar_url' => $this->sender->avatar ? config('app.url') . '/storage/' . $this->sender->avatar : config('app.url') . '/assets/default_avatars.png',
+                    'avatar_url' => $this->sender->avatar_url,
                 ];
             }),
             'receiver' => $this->whenLoaded('receiver', function () {
@@ -45,7 +45,7 @@ class UserMentionResource extends JsonResource
                     'id' => $this->receiver->id,
                     'username' => $this->receiver->username,
                     'nickname' => $this->receiver->nickname,
-                    'avatar_url' => $this->receiver->avatar ? config('app.url') . '/storage/' . $this->receiver->avatar : config('app.url') . '/assets/default_avatars.png',
+                    'avatar_url' => $this->receiver->avatar_url,
                 ];
             }),
             'content_type' => $this->content_type,

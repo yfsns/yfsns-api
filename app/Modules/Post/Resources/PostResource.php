@@ -92,7 +92,7 @@ class PostResource extends JsonResource
                 'id' => (string) $author->id,
                 'username' => $author->username,
                 'nickname' => $author->nickname,
-                'avatarUrl' => $author->avatar ? config('app.url') . '/storage/' . $author->avatar : config('app.url') . '/assets/default_avatars.png',
+                'avatarUrl' => $author->avatar_url,
             ] : null,
             // 时间字段 - 使用 Laravel 原生的人类可读时间格式
             'createdAtHuman' => $this->created_at ? $this->created_at->locale('zh_CN')->diffForHumans() : '',
@@ -192,7 +192,7 @@ class PostResource extends JsonResource
                     'id' => (string) $originalPost->user_id,
                     'username' => $originalPost->user->username ?? '未知用户',
                     'nickname' => $originalPost->user->nickname ?? '未知用户',
-                    'avatarUrl' => $originalPost->user->avatar ? config('app.url') . '/storage/' . $originalPost->user->avatar : config('app.url') . '/assets/default_avatars.png',
+                    'avatarUrl' => $originalPost->user->avatar_url,
                 ],
                 'content' => Str::limit(strip_tags($originalPost->content ?? ''), 100),
                 'createdAt' => $originalPost->created_at?->format('Y-m-d H:i:s'),

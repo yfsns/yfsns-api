@@ -45,20 +45,15 @@ class CommentResource extends JsonResource
             'statusText' => $this->status_text, // 使用 Accessor
             'isLiked' => $this->getIsLikedAttribute($request->user()),
             'createdAt' => $this->created_at,
-            'createdAtHuman' => $this->created_at?->locale('zh_CN')->diffForHumans(),
-            'updatedAt' => $this->updated_at,
-            'updatedAtHuman' => $this->updated_at?->locale('zh_CN')->diffForHumans(),
+            'createdAtHuman' => $this->created_at ? $this->created_at->locale('zh_CN')->diffForHumans() : '',
 
-            // IP地址信息
-            'ip' => $this->ip,
-            'ipCountry' => $this->ip_country,
+            // IP地址信息（列表已按需注释）
+            // 'ip' => $this->ip,
+            // 'ipCountry' => $this->ip_country,
             'ipRegion' => $this->ip_region,
-           // 'ipCity' => $this->ip_city,
-           // 'ipIsp' => $this->ip_isp,
-           // 'ipLocation' => $this->ip_location,
-            //'userAgent' => $this->user_agent,
-            // 操作权限：通过Policy判断是否可以删除
-            'canDelete' => $request->user() ? $request->user()->can('delete', $this->resource) : false,
+
+            // 操作权限：与 Policy 逻辑一致，直接判断避免每条走 Policy
+            'canDelete' => $request->user() && ($request->user()->id === $this->user_id || $request->user()->isAdmin()),
             // 是否为作者：判断评论者是否是目标对象（动态/文章等）的作者
             'isAuthor' => $this->isAuthor(),
 
@@ -66,13 +61,11 @@ class CommentResource extends JsonResource
                 'id' => (string) $this->user->id,
                 'username' => $this->user->username,
                 'nickname' => $this->user->nickname,
-                'avatarUrl' => $this->user->avatar ? config('app.url') . '/storage/' . $this->user->avatar : config('app.url') . '/assets/default_avatars.png',
+                'avatarUrl' => $this->user->avatar_url,
             ] : null,
-            // 移除likes字段，避免关联查询问题。点赞状态通过isLiked字段传递
-            'replies' => $this->when($this->replies, function () {
-                return $this->replies->map(function ($reply) {
-                    return new CommentResource($reply);
-                });
+            // 列表不预加载回复，仅返回 replyCount；展开回复时走「获取评论回复列表」接口
+            'replies' => $this->whenLoaded('replies', function () {
+                return $this->replies->map(fn ($reply) => new CommentResource($reply));
             }),
 
             // @用户列表
@@ -82,22 +75,18 @@ class CommentResource extends JsonResource
                         'userId' => (string) $mention->user_id,
                         'username' => $mention->username,
                         'nickname' => $mention->nickname_at_time,
-                        'avatarUrl' => $mention->user->avatar ? config('app.url') . '/storage/' . $mention->user->avatar : config('app.url') . '/assets/default_avatars.png',
+                        'avatarUrl' => $mention->user->avatar_url,
                     ];
                 });
             }),
 
-            // #话题列表
+            // #话题列表（列表只返回展示用字段，去重 topicId/id）
             'topics' => $this->whenLoaded('topics', function () {
                 return $this->topics->map(function ($topic) {
                     return [
-                        'topicId' => (string) $topic->id,
                         'id' => (string) $topic->id,
                         'name' => $topic->name,
-                        'description' => $topic->description,
                         'cover' => $topic->cover,
-                        'postCount' => $topic->post_count,
-                        'followerCount' => $topic->follower_count,
                         'position' => $topic->pivot->position ?? 0,
                     ];
                 });
