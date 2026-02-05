@@ -36,6 +36,9 @@ class PostServiceProvider extends ServiceProvider
         // 注册动态服务
         $this->app->singleton(\App\Modules\Post\Services\PostService::class);
 
+        // 注册文章服务
+        $this->app->singleton(\App\Modules\Post\Services\ArticleService::class);
+
         // 注册管理员动态服务
         $this->app->singleton(\App\Modules\Post\Services\AdminPostService::class);
     }

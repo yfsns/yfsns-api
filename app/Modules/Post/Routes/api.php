@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 use App\Modules\Post\Controllers\PostController;
+use App\Modules\Post\Controllers\ArticleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -58,4 +59,14 @@ Route::middleware(['auth:sanctum'])->group(function (): void {
         // 获取动态的转发列表
         Route::get('/{id}/reposts', [PostController::class, 'getReposts']);
     });
+
+    // 文章相关路由
+    Route::prefix('articles')->group(function (): void {
+        Route::post('/', [ArticleController::class, 'store']);          // 创建文章
+        Route::put('/{post}', [ArticleController::class, 'update']);    // 更新文章
+        Route::delete('/{post}', [ArticleController::class, 'destroy']); // 删除文章
+    });
 });
+
+// 公开访问的文章详情
+Route::get('articles/{post}', [ArticleController::class, 'show'])->name('articles.show');
