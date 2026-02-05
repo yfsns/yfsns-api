@@ -27,8 +27,6 @@ Route::middleware(['auth:sanctum'])->group(function (): void {
         Route::post('toggle/{id}', [LikeController::class, 'toggle']); // 切换点赞状态（推荐）
 
         // 查询接口
-        Route::get('check/{id}', [LikeController::class, 'check']); // 检查点赞状态
-        Route::get('count/{id}', [LikeController::class, 'count']); // 获取点赞数量
         Route::get('list', [LikeController::class, 'list']); // 获取点赞列表
     });
 });

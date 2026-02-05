@@ -21,8 +21,6 @@
 namespace App\Modules\Like\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Like\Requests\CheckLikeRequest;
-use App\Modules\Like\Requests\GetLikeCountRequest;
 use App\Modules\Like\Requests\GetLikesRequest;
 use App\Modules\Like\Requests\ToggleLikeRequest;
 use App\Modules\Like\Resources\LikeResource;
@@ -165,59 +163,5 @@ class LikeController extends Controller
         ], 200);
     }
 
-    /**
-     * 检查是否已点赞.
-     *
-     * @authenticated
-     *
-     * @queryParam model_type string required 模型类型，可选值：post, comment, topic, user, forum_thread, forum_post
-     *
-     * @response 200 {
-     *   "message": "操作成功",
-     *   "data": {
-     *     "isLiked": true
-     *   }
-     * }
-     */
-    public function check(CheckLikeRequest $request, $id): JsonResponse
-    {
-        $data = $request->validated();
 
-        $model = $this->likeService->getModelByType($data['model_type'], $id);
-        $isLiked = $this->likeService->isLiked($model);
-
-        return response()->json([
-            'code' => 200,
-            'message' => '操作成功',
-            'data' => ['isLiked' => $isLiked],
-        ], 200);
-    }
-
-    /**
-     * 获取点赞数量.
-     *
-     * @authenticated
-     *
-     * @queryParam model_type string required 模型类型，可选值：post, comment, topic, user, forum_thread, forum_post
-     *
-     * @response 200 {
-     *   "message": "操作成功",
-     *   "data": {
-     *     "count": 10
-     *   }
-     *   }
-     */
-    public function count(GetLikeCountRequest $request, $id): JsonResponse
-    {
-        $data = $request->validated();
-
-        $model = $this->likeService->getModelByType($data['model_type'], $id);
-        $count = $this->likeService->getLikeCount($model);
-
-        return response()->json([
-            'code' => 200,
-            'message' => '操作成功',
-            'data' => ['likeCount' => $count],
-        ], 200);
-    }
 }

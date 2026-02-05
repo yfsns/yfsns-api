@@ -21,8 +21,6 @@
 namespace App\Modules\Collect\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Collect\Requests\CheckCollectRequest;
-use App\Modules\Collect\Requests\GetCollectCountRequest;
 use App\Modules\Collect\Requests\GetCollectsRequest;
 use App\Modules\Collect\Requests\ToggleCollectRequest;
 use App\Modules\Collect\Resources\CollectResource;
@@ -163,59 +161,5 @@ class CollectController extends Controller
         ], 200);
     }
 
-    /**
-     * 检查是否已收藏.
-     *
-     * @authenticated
-     *
-     * @queryParam model_type string required 模型类型，可选值：post, comment, topic, user, forum_thread, forum_post
-     *
-     * @response 200 {
-     *   "message": "操作成功",
-     *   "data": {
-     *     "isCollected": true
-     *   }
-     * }
-     */
-    public function check(CheckCollectRequest $request, $id): JsonResponse
-    {
-        $data = $request->validated();
 
-        $model = $this->collectService->getModelByType($data['model_type'], $id);
-        $isCollected = $this->collectService->isCollected($model);
-
-        return response()->json([
-            'code' => 200,
-            'message' => '操作成功',
-            'data' => ['isCollected' => $isCollected],
-        ], 200);
-    }
-
-    /**
-     * 获取收藏数量.
-     *
-     * @authenticated
-     *
-     * @queryParam model_type string required 模型类型，可选值：post, comment, topic, user, forum_thread, forum_post
-     *
-     * @response 200 {
-     *   "message": "操作成功",
-     *   "data": {
-     *     "collectCount": 10
-     *   }
-     * }
-     */
-    public function count(GetCollectCountRequest $request, $id): JsonResponse
-    {
-        $data = $request->validated();
-
-        $model = $this->collectService->getModelByType($data['model_type'], $id);
-        $count = $this->collectService->getCollectCount($model);
-
-        return response()->json([
-            'code' => 200,
-            'message' => '操作成功',
-            'data' => ['collectCount' => $count],
-        ], 200);
-    }
 }

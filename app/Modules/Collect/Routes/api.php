@@ -27,8 +27,6 @@ Route::middleware(['auth:sanctum'])->group(function (): void {
         Route::post('toggle/{id}', [CollectController::class, 'toggle']); // 切换收藏状态（推荐）
 
         // 查询接口
-        Route::get('check/{id}', [CollectController::class, 'check']); // 检查收藏状态
-        Route::get('count/{id}', [CollectController::class, 'count']); // 获取收藏数量
         Route::get('list', [CollectController::class, 'list']); // 获取收藏列表
     });
 });
