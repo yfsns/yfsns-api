@@ -182,10 +182,13 @@ class PostController extends Controller
 
             $post->load($relations);
 
+            // 根据内容类型选择对应的Resource
+            $resource = $this->getResourceForType($post->type, $post);
+
             return response()->json([
                 'code' => 200,
                 'message' => '获取成功',
-                'data' => new PostResource($post),
+                'data' => $resource,
             ], 200);
     }
 
@@ -380,5 +383,19 @@ class PostController extends Controller
                 'total' => $reposts->total(),
             ],
         ], 200);
+    }
+
+    /**
+     * 根据内容类型获取对应的Resource
+     */
+    protected function getResourceForType(string $type, Post $post)
+    {
+        return match ($type) {
+            Post::TYPE_ARTICLE => new \App\Modules\Post\Resources\ArticleResource($post),
+            Post::TYPE_VIDEO => new \App\Modules\Post\Resources\VideoResource($post),
+            Post::TYPE_IMAGE => new \App\Modules\Post\Resources\ImageResource($post),
+            // 其他类型暂时使用通用PostResource
+            default => new \App\Modules\Post\Resources\PostResource($post),
+        };
     }
 }
