@@ -20,10 +20,8 @@
 
 namespace App\Modules\Post\Resources;
 
-use Exception;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Str;
-use Log;
 
 class ImageResource extends JsonResource
 {
@@ -120,13 +118,6 @@ class ImageResource extends JsonResource
                     ];
                 });
             }),
-            // 审核记录（管理员接口）
-            'auditRecords' => $this->when(
-                $request->is('api/admin/*') || $request->is('admin/*'),
-                function () {
-                    return $this->getAuditRecords();
-                }
-            ),
         ];
     }
 
@@ -256,79 +247,4 @@ class ImageResource extends JsonResource
         }
     }
 
-    /**
-     * 获取审核记录
-     */
-    protected function getAuditRecords(): array
-    {
-        $records = [];
-
-        try {
-            $logs = \App\Modules\Review\Models\ReviewLog::where('reviewable_type', \App\Modules\Post\Models\Post::class)
-                ->where('reviewable_id', $this->id)
-                ->with('admin:id,username,nickname')
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            foreach ($logs as $log) {
-                if ($log->channel === 'manual') {
-                    $statusText = \App\Modules\Post\Models\Post::getStatusText((int) $log->new_status);
-
-                    $records[] = [
-                        'channel' => '人工',
-                        'channelType' => 'manual',
-                        'status' => (int) $log->new_status,
-                        'statusText' => $statusText,
-                        'reason' => $log->remark,
-                        'adminId' => $log->admin_id ? (string) $log->admin_id : null,
-                        'adminName' => $log->relationLoaded('admin') && $log->admin
-                            ? ($log->admin->nickname ?: $log->admin->username)
-                            : null,
-                        'previousStatus' => (int) $log->previous_status,
-                        'createdAt' => $log->created_at?->toIso8601String(),
-                        'createdAtHuman' => $log->created_at?->diffForHumans(),
-                    ];
-                } else {
-                    $result = $log->audit_result ?? [];
-                    $status = $result['status'] ?? 'pending';
-
-                    $statusText = [
-                        'pass' => '审核通过',
-                        'approved' => '审核通过',
-                        'reject' => '审核拒绝',
-                        'rejected' => '审核拒绝',
-                        'pending' => '待审核',
-                    ][$status] ?? $status;
-
-                    $postStatus = match ($status) {
-                        'pass', 'approved' => \App\Modules\Post\Models\Post::STATUS_PUBLISHED,
-                        'reject', 'rejected' => \App\Modules\Post\Models\Post::STATUS_REJECTED,
-                        default => \App\Modules\Post\Models\Post::STATUS_PENDING,
-                    };
-
-                    $records[] = [
-                        'channel' => 'AI',
-                        'channelType' => 'ai',
-                        'pluginName' => $log->plugin_name,
-                        'status' => $postStatus,
-                        'statusText' => $statusText,
-                        'reason' => $result['reason'] ?? $result['message'] ?? $log->remark,
-                        'score' => $result['score'] ?? null,
-                        'details' => $result['details'] ?? null,
-                        'auditResult' => $result,
-                        'previousStatus' => (int) $log->previous_status,
-                        'createdAt' => $log->created_at?->toIso8601String(),
-                        'createdAtHuman' => $log->created_at?->diffForHumans(),
-                    ];
-                }
-            }
-        } catch (Exception $e) {
-            Log::warning('获取图片审核记录失败', [
-                'post_id' => $this->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        return $records;
-    }
 }
