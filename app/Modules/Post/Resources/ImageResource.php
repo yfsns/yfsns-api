@@ -29,6 +29,15 @@ class ImageResource extends JsonResource
 {
     public function toArray($request)
     {
+        // 调试信息：检查files关联是否正确加载
+        \Log::info('ImageResource toArray called', [
+            'post_id' => $this->id,
+            'post_type' => $this->type,
+            'files_loaded' => $this->relationLoaded('files'),
+            'files_count' => $this->relationLoaded('files') ? $this->files->count() : 0,
+            'files_types' => $this->relationLoaded('files') ? $this->files->pluck('type')->toArray() : [],
+        ]);
+
         // 设置用户交互状态
         $this->setUserInteractionStatus($request);
 
