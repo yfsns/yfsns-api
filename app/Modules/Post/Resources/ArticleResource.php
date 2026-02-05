@@ -73,7 +73,7 @@ class ArticleResource extends JsonResource
                     return [
                         'fileId' => $file->id,
                         'name' => $file->name,
-                        'url' => $file->path,
+                        'url' => $file->url, // 使用File模型的url属性获取完整URL
                         'size' => $file->size,
                         'mimeType' => $file->mime_type,
                     ];
@@ -86,7 +86,7 @@ class ArticleResource extends JsonResource
                     return [
                         'fileId' => $file->id,
                         'name' => $file->name,
-                        'url' => $file->path,
+                        'url' => $file->url, // 使用File模型的url属性获取完整URL
                         'size' => $file->size,
                         'mimeType' => $file->mime_type,
                     ];
@@ -99,7 +99,7 @@ class ArticleResource extends JsonResource
                 return $cover ? [
                     'fileId' => $cover->id,
                     'name' => $cover->name,
-                    'url' => $cover->path,
+                    'url' => $cover->url, // 使用File模型的url属性获取完整URL
                     'size' => $cover->size,
                     'mimeType' => $cover->mime_type,
                 ] : null;
@@ -111,7 +111,7 @@ class ArticleResource extends JsonResource
                     return [
                         'fileId' => $file->id,
                         'name' => $file->name,
-                        'url' => $file->path,
+                        'url' => $file->url, // 使用File模型的url属性获取完整URL
                         'size' => $file->size,
                         'mimeType' => $file->mime_type,
                     ];

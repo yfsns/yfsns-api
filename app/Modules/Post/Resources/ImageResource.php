@@ -29,15 +29,6 @@ class ImageResource extends JsonResource
 {
     public function toArray($request)
     {
-        // 调试信息：检查files关联是否正确加载
-        \Log::info('ImageResource toArray called', [
-            'post_id' => $this->id,
-            'post_type' => $this->type,
-            'files_loaded' => $this->relationLoaded('files'),
-            'files_count' => $this->relationLoaded('files') ? $this->files->count() : 0,
-            'files_types' => $this->relationLoaded('files') ? $this->files->pluck('type')->toArray() : [],
-        ]);
-
         // 设置用户交互状态
         $this->setUserInteractionStatus($request);
 
@@ -78,7 +69,7 @@ class ImageResource extends JsonResource
                     return [
                         'fileId' => $file->id,
                         'name' => $file->name,
-                        'url' => $file->path,
+                        'url' => $file->url, // 使用File模型的url属性获取完整URL
                         'thumbnail' => $file->thumbnail,
                         'size' => $file->size,
                         'mimeType' => $file->mime_type,
@@ -96,7 +87,7 @@ class ImageResource extends JsonResource
                 return $cover ? [
                     'fileId' => $cover->id,
                     'name' => $cover->name,
-                    'url' => $cover->path,
+                    'url' => $cover->url, // 使用File模型的url属性获取完整URL
                     'size' => $cover->size,
                     'mimeType' => $cover->mime_type,
                 ] : null;
