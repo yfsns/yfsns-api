@@ -20,12 +20,151 @@
 
 namespace App\Modules\Post\Resources;
 
-use Exception;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Str;
-use Log;
+class VideoResource extends BasePostResource
+{
+    protected function getType(): string
+    {
+        return 'video';
+    }
 
-class VideoResource extends JsonResource
+    protected function getSpecificFields($request): array
+    {
+        return [
+            'videos' => $this->whenLoaded('files', function () {
+                return $this->files->filter(function ($file) {
+                    return $file->type === 'video';
+                })->map(function ($file) {
+                    return [
+                        'fileId' => $file->id,
+                        'name' => $file->name,
+                        'url' => $file->url, // 使用File模型的url属性获取完整URL
+                        'size' => $file->size,
+                        'mimeType' => $file->mime_type,
+                        'thumbnail' => $file->thumbnail,
+                        'duration' => $file->duration ?? $this->getVideoDuration($file),
+                        'resolution' => $this->getVideoResolution($file),
+                        'bitrate' => $file->bitrate ?? null,
+                        'quality' => $this->getVideoQuality($file),
+                    ];
+                });
+            }),
+            'coverImage' => $this->whenLoaded('files', function () {
+                $cover = $this->files->first(function ($file) {
+                    return $file->type === \App\Modules\File\Models\File::TYPE_COVER;
+                });
+                return $cover ? [
+                    'fileId' => $cover->id,
+                    'name' => $cover->name,
+                    'url' => $cover->url, // 使用File模型的url属性获取完整URL
+                    'size' => $cover->size,
+                    'mimeType' => $cover->mime_type,
+                ] : null;
+            }),
+            'videoInfo' => [
+                'totalDuration' => $this->getTotalVideoDuration(),
+                'totalSize' => $this->getTotalVideoSize(),
+                'hasMultipleQuality' => $this->hasMultipleQuality(),
+                'availableQualities' => $this->getAvailableQualities(),
+            ],
+        ];
+    }
+
+    /**
+     * 获取视频时长
+     */
+    protected function getVideoDuration($file): ?int
+    {
+        // 这里可以调用FFmpeg或其他服务获取视频时长
+        // 暂时从数据库字段获取或返回null
+        return $file->metadata['duration'] ?? null;
+    }
+
+    /**
+     * 获取视频分辨率
+     */
+    protected function getVideoResolution($file): ?string
+    {
+        // 获取视频分辨率信息
+        return $file->metadata['resolution'] ?? null;
+    }
+
+    /**
+     * 获取视频质量
+     */
+    protected function getVideoQuality($file): string
+    {
+        $bitrate = $file->bitrate ?? 0;
+
+        if ($bitrate >= 8000000) return '4K';
+        if ($bitrate >= 5000000) return '1080p';
+        if ($bitrate >= 2500000) return '720p';
+        if ($bitrate >= 1000000) return '480p';
+
+        return 'SD';
+    }
+
+    /**
+     * 获取总视频时长
+     */
+    protected function getTotalVideoDuration(): ?int
+    {
+        if (!$this->relationLoaded('files')) {
+            return null;
+        }
+
+        $totalDuration = 0;
+        foreach ($this->files->where('type', 'video') as $file) {
+            $duration = $this->getVideoDuration($file);
+            if ($duration) {
+                $totalDuration = max($totalDuration, $duration);
+            }
+        }
+
+        return $totalDuration > 0 ? $totalDuration : null;
+    }
+
+    /**
+     * 获取总视频大小
+     */
+    protected function getTotalVideoSize(): int
+    {
+        if (!$this->relationLoaded('files')) {
+            return 0;
+        }
+
+        return $this->files->where('type', 'video')->sum('size');
+    }
+
+    /**
+     * 是否有多种质量
+     */
+    protected function hasMultipleQuality(): bool
+    {
+        if (!$this->relationLoaded('files')) {
+            return false;
+        }
+
+        return $this->files->where('type', 'video')->count() > 1;
+    }
+
+    /**
+     * 获取可用质量列表
+     */
+    protected function getAvailableQualities(): array
+    {
+        if (!$this->relationLoaded('files')) {
+            return [];
+        }
+
+        return $this->files->where('type', 'video')
+            ->map(function ($file) {
+                return $this->getVideoQuality($file);
+            })
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+}
 {
     public function toArray($request)
     {
