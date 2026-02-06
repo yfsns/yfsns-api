@@ -22,7 +22,7 @@ namespace App\Modules\Post\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class GetPostDetailRequest extends FormRequest
+class GetVideoDetailRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -32,7 +32,7 @@ class GetPostDetailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => 'nullable|string|in:post', // 动态详情只支持post类型
+            // 视频详情不需要额外的查询参数
         ];
     }
 
@@ -41,9 +41,16 @@ class GetPostDetailRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // 自动设置 type 为 post（动态）
+        // 自动设置 type 为 video（视频）
         $this->merge([
-            'type' => 'post',
+            'type' => 'video',
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            // 暂无额外验证消息
+        ];
     }
 }

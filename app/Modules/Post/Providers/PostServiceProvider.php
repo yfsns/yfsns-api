@@ -33,11 +33,17 @@ class PostServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // 注册动态服务
+        // 注册动态服务（post）
         $this->app->singleton(\App\Modules\Post\Services\PostService::class);
 
-        // 注册文章服务
+        // 注册文章服务（article）
         $this->app->singleton(\App\Modules\Post\Services\ArticleService::class);
+
+        // 注册故事服务（图文）
+        $this->app->singleton(\App\Modules\Post\Services\StoryService::class);
+
+        // 注册视频服务（video）
+        $this->app->singleton(\App\Modules\Post\Services\VideoService::class);
 
         // 注册管理员动态服务
         $this->app->singleton(\App\Modules\Post\Services\AdminPostService::class);

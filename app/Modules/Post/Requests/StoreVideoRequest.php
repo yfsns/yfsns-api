@@ -22,7 +22,7 @@ namespace App\Modules\Post\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreArticleRequest extends FormRequest
+class StoreVideoRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -33,9 +33,9 @@ class StoreArticleRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'content' => 'required|string|max:50000',
+            'content' => 'nullable|string|max:2000',
             'visibility' => 'nullable|integer|in:1,2,3,4',
-            'file_ids' => 'nullable|array|max:20',
+            'file_ids' => 'required|array|min:1|max:5',
             'file_ids.*' => 'integer|exists:files,id|distinct',
             'location' => 'nullable|array',
             'mentions' => 'nullable|array|max:20',
@@ -60,14 +60,15 @@ class StoreArticleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required' => '文章标题不能为空',
-            'title.max' => '文章标题不能超过255个字符',
-            'content.required' => '文章内容不能为空',
-            'content.max' => '文章内容不能超过50000个字符',
+            'title.required' => '视频标题不能为空',
+            'title.max' => '视频标题不能超过255个字符',
+            'content.max' => '视频描述不能超过2000个字符',
             'visibility.in' => '可见性设置无效',
-            'file_ids.array' => '文件ID必须是数组',
-            'file_ids.max' => '最多只能上传20个文件',
-            'file_ids.*.exists' => '选择的文件不存在',
+            'file_ids.required' => '至少需要上传一个视频',
+            'file_ids.array' => '视频ID必须是数组',
+            'file_ids.min' => '至少需要上传一个视频',
+            'file_ids.max' => '最多只能上传5个视频',
+            'file_ids.*.exists' => '选择的视频不存在',
             'mentions.array' => '@用户必须是数组',
             'mentions.max' => '最多只能@20个用户',
             'mentions.*.exists' => '@的用户不存在',
@@ -83,10 +84,22 @@ class StoreArticleRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            // 文章特定的验证逻辑可以在这里添加
+            // 验证视频文件确实是视频类型
+            $fileIds = $this->input('file_ids', []);
+            if (!empty($fileIds)) {
+                $videoFiles = \App\Modules\File\Models\File::whereIn('id', $fileIds)
+                    ->where('type', 'video')
+                    ->count();
+
+                if ($videoFiles !== count($fileIds)) {
+                    $validator->errors()->add('file_ids', '只能上传视频文件');
+                }
+            }
+
+            // 如果有内容，检查内容长度
             $content = $this->input('content');
-            if ($content && strlen(strip_tags($content)) < 10) {
-                $validator->errors()->add('content', '文章内容不能少于10个字符');
+            if ($content && strlen(strip_tags($content)) < 2) {
+                $validator->errors()->add('content', '视频描述不能少于2个字符');
             }
         });
     }

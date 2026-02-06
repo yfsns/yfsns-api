@@ -23,9 +23,11 @@ namespace App\Modules\Post\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Post\Models\Post;
 use App\Modules\Post\Requests\StoreArticleRequest;
+use App\Modules\Post\Requests\GetArticlesRequest;
 use App\Modules\Post\Requests\GetArticleDetailRequest;
 use App\Modules\Post\Resources\ArticleResource;
 use App\Modules\Post\Services\ArticleService;
+use App\Modules\Post\Services\PostService;
 use App\Modules\User\Services\UserService;
 use Illuminate\Http\JsonResponse;
 
@@ -37,12 +39,87 @@ use Illuminate\Http\JsonResponse;
 class ArticleController extends Controller
 {
     protected ArticleService $articleService;
+    protected PostService $postService;
     protected UserService $userService;
 
-    public function __construct(ArticleService $articleService, UserService $userService)
+    public function __construct(ArticleService $articleService, PostService $postService, UserService $userService)
     {
         $this->articleService = $articleService;
+        $this->postService = $postService;
         $this->userService = $userService;
+    }
+
+    /**
+     * 获取文章列表
+     *
+     * @response 200 {
+     *   "code": 200,
+     *   "message": "获取成功",
+     *   "data": {
+     *     "data": [
+     *       {
+     *         "id": "1",
+     *         "type": "article",
+     *         "title": "文章标题",
+     *         "contentHtml": "文章内容",
+     *         "excerpt": "文章摘要...",
+     *         "author": {...}
+     *       }
+     *     ],
+     *     "next_cursor": "xxx",
+     *     "has_more": true
+     *   }
+     * }
+     */
+    public function index(GetArticlesRequest $request): JsonResponse
+    {
+        // 获取验证后的数据（已经是下划线格式）
+        $validated = $request->validated();
+
+        $params = [
+            'type' => 'article', // 文章固定为article类型
+            'filter' => $validated['filter'] ?? 'all',
+            'userId' => $validated['user_id'] ?? null,
+            'topicId' => $validated['topic_id'] ?? null,
+            'topicName' => $validated['topicName'] ?? null,
+            'cursor' => $validated['cursor'] ?? null,
+            'limit' => $validated['limit'] ?? 10,
+            'page' => $validated['page'] ?? null,
+        ];
+
+        // 根据筛选类型验证必要参数
+        if ($params['filter'] === 'user' && ! $params['userId']) {
+            return response()->json([
+                'code' => 400,
+                'message' => '获取用户文章时必须提供userId参数',
+                'data' => null,
+            ], 400);
+        }
+
+        if ($params['filter'] === 'topic' && ! ($params['topicId'] ?? $validated['topicName'] ?? null)) {
+            return response()->json([
+                'code' => 400,
+                'message' => '按话题筛选时必须提供topicId或topicName参数',
+                'data' => null,
+            ], 400);
+        }
+
+        if (in_array($params['filter'], ['liked', 'my', 'following']) && ! auth()->check()) {
+            return response()->json([
+                'code' => 401,
+                'message' => '需要登录才能访问此内容',
+                'data' => null,
+            ], 401);
+        }
+
+        $result = $this->postService->getUnifiedPosts($params);
+
+        // 返回cursor分页结果（保持现有壳结构）
+        return response()->json([
+            'code' => 200,
+            'message' => '获取成功',
+            'data' => $result,
+        ], 200);
     }
 
     /**

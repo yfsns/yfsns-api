@@ -33,11 +33,11 @@ class StorePostRequest extends FormRequest
     {
         return [
             'title' => 'nullable|string|max:255',
-            'content' => 'required|string|max:2000',
-            'type' => 'nullable|string|in:post,article,question,thread,image,video',
+            'content' => 'required|string|max:2000', // 动态内容必填
+            'type' => 'nullable|string|in:post', // 动态只支持post类型
             'visibility' => 'nullable|integer|in:1,2,3,4',
             'repost_id' => 'nullable|integer|exists:posts,id',
-            'file_ids' => 'nullable|array|max:20',
+            'file_ids' => 'nullable|array|max:20', // 动态可以包含文件
             'file_ids.*' => 'integer|exists:files,id|distinct',
             'location' => 'nullable|array',
             'mentions' => 'nullable|array|max:20',
@@ -52,8 +52,9 @@ class StorePostRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // 转换驼峰格式字段为下划线格式
+        // 自动设置 type 为 post（动态）
         $this->merge([
+            'type' => 'post',
             'file_ids' => $this->fileIds ?? $this->file_ids,
         ]);
     }
@@ -64,17 +65,8 @@ class StorePostRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $type = $this->input('type');
-
-            // 只有文章类型才需要标题，其他类型（特别是动态post）不需要
-            if ($type === 'article' && empty($this->input('title'))) {
-                $validator->errors()->add('title', '文章标题不能为空');
-            }
-
-            // 问题和话题类型也需要标题
-            if (in_array($type, ['question', 'thread']) && empty($this->input('title'))) {
-                $validator->errors()->add('title', ucfirst($type) . '标题不能为空');
-            }
+            // 动态类型不需要特殊的额外验证
+            // 可以在这里添加动态特有的验证逻辑
         });
     }
 }

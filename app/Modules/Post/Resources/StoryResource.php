@@ -21,9 +21,8 @@
 namespace App\Modules\Post\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Str;
 
-class ImageResource extends JsonResource
+class StoryResource extends JsonResource
 {
     public function toArray($request)
     {
@@ -32,7 +31,7 @@ class ImageResource extends JsonResource
 
         return [
             'id' => (string) $this->id,
-            'type' => 'image',
+            'type' => 'story',
             'title' => $this->title,
             'contentHtml' => $this->content_html,
             'status' => $this->status,
@@ -58,7 +57,7 @@ class ImageResource extends JsonResource
             'collectCount' => $this->collects_count ?? $this->collects->count() ?? 0,
             'isLiked' => $this->isLiked ?? $this->is_liked ?? false,
             'isCollected' => $this->isCollected ?? $this->is_favorited ?? false,
-            'canEdit' => $request->user() ? $request->user()->can('update', $this->resource) : false,
+            'canEdit' => false, // 故事不支持编辑
             'canDelete' => $request->user() ? $request->user()->can('delete', $this->resource) : false,
             'images' => $this->whenLoaded('files', function () {
                 return $this->files->filter(function ($file) {
@@ -129,7 +128,25 @@ class ImageResource extends JsonResource
         return $file->metadata['height'] ?? null;
     }
 
+    /**
+     * 设置用户交互状态
+     */
+    protected function setUserInteractionStatus($request): void
+    {
+        $user = $request->user();
 
+        // 设置点赞状态
+        if ($this->resource->relationLoaded('likes')) {
+            $this->resource->isLiked = $user ? $this->resource->likes->contains('user_id', $user->id) : false;
+        } else {
+            $this->resource->isLiked = false;
+        }
 
-
+        // 设置收藏状态
+        if ($this->resource->relationLoaded('collects')) {
+            $this->resource->isCollected = $user ? $this->resource->collects->contains('user_id', $user->id) : false;
+        } else {
+            $this->resource->isCollected = false;
+        }
+    }
 }

@@ -22,7 +22,7 @@ namespace App\Modules\Post\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class GetPostsRequest extends FormRequest
+class GetArticlesRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -32,7 +32,6 @@ class GetPostsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => 'nullable|string|in:post', // 动态只支持post类型
             'filter' => 'nullable|string|in:all,media,liked,user,my,following,topic',
             'user_id' => 'nullable|integer',
             'topic_id' => 'nullable|integer',
@@ -48,11 +47,25 @@ class GetPostsRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // 自动设置 type 为 post（动态）
+        // 自动设置 type 为 article（文章）
         $this->merge([
-            'type' => 'post',
-            'user_id' => $this->userId ?? $this->user_id,
-            'topic_id' => $this->topicId ?? $this->topic_id,
+            'type' => 'article',
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'filter.in' => '筛选类型无效',
+            'user_id.integer' => '用户ID必须是整数',
+            'topic_id.integer' => '话题ID必须是整数',
+            'topicName.max' => '话题名称不能超过100个字符',
+            'cursor.string' => '游标必须是字符串',
+            'limit.integer' => '每页数量必须是整数',
+            'limit.min' => '每页数量不能小于1',
+            'limit.max' => '每页数量不能超过50',
+            'page.integer' => '页码必须是整数',
+            'page.min' => '页码不能小于1',
+        ];
     }
 }

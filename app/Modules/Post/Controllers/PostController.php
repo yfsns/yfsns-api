@@ -139,57 +139,51 @@ class PostController extends Controller
      */
     public function getDetail(Post $post, GetPostDetailRequest $request): JsonResponse
     {
-            $validated = $request->validated();
-            $requestType = $validated['type'];
+        // 验证是否为动态类型（post）
+        if ($post->type !== Post::TYPE_POST) {
+            return response()->json([
+                'code' => 404,
+                'message' => '动态不存在',
+                'data' => null,
+            ], 404);
+        }
 
-            // 验证动态类型是否匹配（这个业务逻辑验证无法完全转移到验证规则）
-            if ($post->type !== $requestType) {
-                return response()->json([
-                    'code' => 404,
-                    'message' => '动态类型不匹配',
-                    'data' => null,
-                ], 404);
-            }
+        // 使用 Policy 检查查看权限，失败自动返回 403
+        $this->authorize('view', $post);
 
-            // 使用 Policy 检查查看权限，失败自动返回 403
-            $this->authorize('view', $post);
+        // 加载动态详情所需的关联数据和用户交互状态
+        $relations = [
+            'user' => function ($query) {
+                $query->withEssentialFields('status');
+            },
+            'files:id,name,path,type,size,mime_type,storage,thumbnail,created_at,updated_at',
+            'likes:id,likeable_id,user_id',
+            'collects:id,collectable_id,user_id',
+            'comments:id,target_id,user_id,content,created_at',
+            'mentions:id,sender_id,receiver_id,username,nickname_at_time',
+            'mentions.receiver' => function ($query) {
+                $query->selectBasic();
+            },
+            'topics:id,name,description,cover,post_count,follower_count',
+        ];
 
-            // 加载动态详情所需的关联数据和用户交互状态
-            $relations = [
-                'user' => function ($query) {
+        // 只有在存在转发ID时才加载原动态的关系
+        if ($post->repost_id) {
+            $relations = array_merge($relations, [
+                'originalPost.user' => function ($query) {
                     $query->withEssentialFields('status');
                 },
-                'files:id,name,path,type,size,mime_type,storage,thumbnail,created_at,updated_at',
-                'likes:id,likeable_id,user_id',
-                'collects:id,collectable_id,user_id',
-                'comments:id,target_id,user_id,content,created_at',
-                'mentions:id,sender_id,receiver_id,username,nickname_at_time',
-                'mentions.receiver' => function ($query) {
-                    $query->selectBasic();
-                },
-                'topics:id,name,description,cover,post_count,follower_count',
-            ];
+                'originalPost.files:id,name,path,type,size,mime_type,storage,thumbnail,created_at,updated_at',
+            ]);
+        }
 
-            // 只有在存在转发ID时才加载原动态的关系
-            if ($post->repost_id) {
-                $relations = array_merge($relations, [
-                    'originalPost.user' => function ($query) {
-                        $query->withEssentialFields('status');
-                    },
-                    'originalPost.files:id,name,path,type,size,mime_type,storage,thumbnail,created_at,updated_at',
-                ]);
-            }
+        $post->load($relations);
 
-            $post->load($relations);
-
-            // 根据内容类型选择对应的Resource
-            $resource = $this->getResourceForType($post->type, $post);
-
-            return response()->json([
-                'code' => 200,
-                'message' => '获取成功',
-                'data' => $resource,
-            ], 200);
+        return response()->json([
+            'code' => 200,
+            'message' => '获取成功',
+            'data' => new PostResource($post),
+        ], 200);
     }
 
     /**
@@ -388,14 +382,4 @@ class PostController extends Controller
     /**
      * 根据内容类型获取对应的Resource
      */
-    protected function getResourceForType(string $type, Post $post)
-    {
-        return match ($type) {
-            Post::TYPE_ARTICLE => new \App\Modules\Post\Resources\ArticleResource($post),
-            Post::TYPE_VIDEO => new \App\Modules\Post\Resources\VideoResource($post),
-            Post::TYPE_IMAGE => new \App\Modules\Post\Resources\ImageResource($post),
-            // 其他类型暂时使用通用PostResource
-            default => new \App\Modules\Post\Resources\PostResource($post),
-        };
-    }
 }

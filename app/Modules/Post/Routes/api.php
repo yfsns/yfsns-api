@@ -19,6 +19,8 @@
  */
 use App\Modules\Post\Controllers\PostController;
 use App\Modules\Post\Controllers\ArticleController;
+use App\Modules\Post\Controllers\StoryController;
+use App\Modules\Post\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,22 +32,22 @@ use Illuminate\Support\Facades\Route;
 ||
 */
 
-// 统一的帖子列表接口 - 支持多种类型过滤和游标分页
-// 使用全局限流（600次/分钟），count() 已优化（缓存30秒）
-// 公开访问，但会根据登录状态返回不同的权限信息
-// 添加api中间件组以支持Token验证和自动刷新
-Route::middleware(['api'])->get('posts', [PostController::class, 'getPosts'])->name('posts.index');
+// ========================================
+// 公开访问的查询接口（无需认证）
+// ========================================
 
-// 动态详情 - 公开访问
-// 使用全局限流（600次/分钟）
-Route::get('posts/{post}', [PostController::class, 'getDetail'])->name('posts.show');
+// 动态查询接口（公开访问）
+Route::prefix('posts')->group(function (): void {
+    Route::get('/', [PostController::class, 'getPosts']);           // 获取动态列表
+    Route::get('/{post}', [PostController::class, 'getDetail']);    // 获取动态详情
+});
 
 Route::middleware(['auth:sanctum'])->group(function (): void {
-    // 动态基础操作（需要登录）
+    // 动态管理操作（需要认证）
     Route::prefix('posts')->group(function (): void {
-        Route::post('/', [PostController::class, 'store']);
-        Route::put('{post}', [PostController::class, 'update']);
-        Route::delete('{post}', [PostController::class, 'destroy']);
+        Route::post('/', [PostController::class, 'store']);          // 创建动态
+        Route::put('{post}', [PostController::class, 'update']);     // 更新动态
+        Route::delete('{post}', [PostController::class, 'destroy']); // 删除动态
     });
 
     // 转发相关操作（作为posts的子资源）
@@ -60,13 +62,45 @@ Route::middleware(['auth:sanctum'])->group(function (): void {
         Route::get('/{id}/reposts', [PostController::class, 'getReposts']);
     });
 
-    // 文章相关路由
+    // 文章相关路由（需要认证的管理操作）
     Route::prefix('articles')->group(function (): void {
         Route::post('/', [ArticleController::class, 'store']);          // 创建文章
         Route::put('/{post}', [ArticleController::class, 'update']);    // 更新文章
         Route::delete('/{post}', [ArticleController::class, 'destroy']); // 删除文章
     });
+
+    // 故事（图文）相关路由（需要认证的管理操作）
+    Route::prefix('stories')->group(function (): void {
+        Route::post('/', [StoryController::class, 'store']);          // 创建故事
+        Route::delete('/{post}', [StoryController::class, 'destroy']); // 删除故事
+    });
+
+    // 视频相关路由（需要认证的管理操作）
+    Route::prefix('videos')->group(function (): void {
+        Route::post('/', [VideoController::class, 'store']);          // 创建视频
+        Route::delete('/{post}', [VideoController::class, 'destroy']); // 删除视频
+    });
 });
 
-// 公开访问的文章详情
-Route::get('articles/{post}', [ArticleController::class, 'show'])->name('articles.show');
+// ========================================
+// 公开访问的查询接口（无需认证）
+// ========================================
+
+// 文章查询接口（公开访问）
+Route::prefix('articles')->group(function (): void {
+    Route::get('/', [ArticleController::class, 'index']);           // 获取文章列表
+    Route::get('/{post}', [ArticleController::class, 'show']);       // 获取文章详情
+});
+
+// 故事（图文）查询接口（公开访问）
+Route::prefix('stories')->group(function (): void {
+    Route::get('/', [StoryController::class, 'index']);           // 获取图文列表
+    Route::get('/{post}', [StoryController::class, 'show']);       // 获取图文详情
+});
+
+// 视频查询接口（公开访问）
+Route::prefix('videos')->group(function (): void {
+    Route::get('/', [VideoController::class, 'index']);           // 获取视频列表
+    Route::get('/{post}', [VideoController::class, 'show']);       // 获取视频详情
+});
+
