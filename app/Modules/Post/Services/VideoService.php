@@ -50,8 +50,11 @@ class VideoService
             unset($data['location']);
         }
 
+        // 处理内容（视频内容可以为空）
+        $data['content'] = $data['content'] ?? '';
+
         // 生成HTML内容
-        $data['content_html'] = $this->processContentHtml($data['content'] ?? '');
+        $data['content_html'] = $this->processContentHtml($data['content']);
 
         $video = Post::create($data);
 
